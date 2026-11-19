@@ -49,7 +49,7 @@ You do not need to rebuild the design when changing prices; redeploy after savin
 
 ## Product artwork
 
-The files in `public/images/` use the actual Cardone’s designs produced for Castor, Extra Virgin Coconut, Extra Virgin Olive, Palm, Golden Jojoba and Rosemary Oil, plus the existing castor bottle mockup. **They are design visualizations, not certified ingredient or regulatory-label artwork.** For physical printing, verify bottle dimensions, product identity (especially palm fruit versus palm kernel and rosemary essential versus infused), ingredients, contact details and applicable Jamaican rules. Do not publish unsubstantiated therapeutic claims. Do not imply independent purity certifications or customer reviews.
+The bottle mockup photographs in `public/images/*-bottle.webp` place the actual Cardone’s label designs onto illustrative amber glass bottles. Each product detail page has a **Glass bottle / Original label artwork** toggle; actual bottle photography may replace the mockups later. The files in `public/images/` use the actual Cardone’s designs produced for Castor, Extra Virgin Coconut, Extra Virgin Olive, Palm, Golden Jojoba and Rosemary Oil, plus the existing castor bottle mockup. **These bottle mockups are visual simulations, not photographs of production-filled inventory or certified regulatory-label artwork.** For physical printing, verify bottle dimensions, product identity (especially palm fruit versus palm kernel and rosemary essential versus infused), ingredients, contact details and applicable Jamaican rules. Do not publish unsubstantiated therapeutic claims. Do not imply independent purity certifications or customer reviews.
 
 ## Design and shopping features
 
