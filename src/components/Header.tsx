@@ -12,7 +12,7 @@ export function Header() {
   const { count, setCartOpen } = useStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   return <>
-    <div className="announcement">A LITTLE LUXURY, BOTTLED IN JAMAICA <span>✦</span> COMPLIMENT YOUR DAILY RITUAL</div>
+    <div className="announcement">A LITTLE LUXURY, BOTTLED IN JAMAICA <span>✦</span> COMPLEMENT YOUR DAILY RITUAL</div>
     <header className="header"><div className="container header-inner">
       <button className="icon-button mobile-menu" onClick={() => setMobileOpen((v) => !v)} aria-label={mobileOpen ? "Close menu" : "Open menu"}>{mobileOpen ? <X size={22}/> : <Menu size={22}/>}</button>
       <Link href="/" className="wordmark" onClick={() => setMobileOpen(false)} aria-label="Cardone's Products home"><span className="wordmark-name">CARDONE’S</span><span className="wordmark-sub"><i/>PRODUCTS<i/></span></Link>

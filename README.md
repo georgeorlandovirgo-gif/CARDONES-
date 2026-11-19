@@ -22,7 +22,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Check `npm run typecheck` and `npm run build` before launch.
+Open http://localhost:3000. Check `npm run typecheck` and `npm run build` before launch. A GitHub Actions workflow also validates type-checking and builds on pushes to `main`.
 
 ## Enable real order requests
 
@@ -33,6 +33,7 @@ Open http://localhost:3000. Check `npm run typecheck` and `npm run build` before
 5. Make a test order. Check `public.store_orders` in Supabase Table Editor. Confirm that the customer sees a reference number and the merchant can review the order.
 6. Optionally connect Resend email notifications by setting `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL` and `ORDER_FROM_EMAIL` with a verified sending domain. Confirm emails arrive in tests.
 7. Replace placeholder contact information and publish shipping/returns contact details before accepting paid orders.
+8. Before public launch, add an anti-spam/rate-limiting solution to the order submission API and test notification failures. A saved order can succeed without an email notification.
 
 The `/api/orders` endpoint validates customer input and re-checks products, quantities, availability and prices **on the server**. It stores orders in Supabase. A disabled backend returns a clear error and does not pretend the order succeeded. Delivery and final pricing must be confirmed manually before payment. Orders are not charged online.
 

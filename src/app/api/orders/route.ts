@@ -65,10 +65,13 @@ export async function POST(req: NextRequest) {
     const sender = process.env.ORDER_FROM_EMAIL;
     if (resendKey && merchant && sender) {
       const detail = lines.map(x => `${x.quantity} × ${x.name} (${x.size}) — ${x.unitPriceJmd === null ? "Quote needed" : `J$${x.unitPriceJmd}`}`).join("\n");
-      fetch("https://api.resend.com/emails", {
-        method:"POST", headers: { Authorization:`Bearer ${resendKey}`, "Content-Type":"application/json" },
-        body: JSON.stringify({ from:sender, to:[merchant], subject:`New Cardone's request ${ref}`, text:`Reference: ${ref}\nName: ${info.name}\nPhone: ${info.phone}\nEmail: ${info.email || "Not provided"}\nParish: ${info.parish}\nFulfilment: ${info.fulfillment}\nAddress: ${info.address || ""}\nNotes: ${info.notes || ""}\n\n${detail}\n\nPriced subtotal: J$${subtotal}\nQuotation required: ${hasUnpriced ? "Yes" : "No"}` })
-      }).catch(() => console.error("Merchant notification could not be delivered"));
+      try {
+        const mailResponse = await fetch("https://api.resend.com/emails", {
+          method:"POST", signal: AbortSignal.timeout(5000), headers: { Authorization:`Bearer ${resendKey}`, "Content-Type":"application/json" },
+          body: JSON.stringify({ from:sender, to:[merchant], subject:`New Cardone's request ${ref}`, text:`Reference: ${ref}\nName: ${info.name}\nPhone: ${info.phone}\nEmail: ${info.email || "Not provided"}\nParish: ${info.parish}\nFulfilment: ${info.fulfillment}\nAddress: ${info.address || ""}\nNotes: ${info.notes || ""}\n\n${detail}\n\nPriced subtotal: J$${subtotal}\nQuotation required: ${hasUnpriced ? "Yes" : "No"}` })
+        });
+        if (!mailResponse.ok) console.error("Merchant notification failed with status", mailResponse.status);
+      } catch { console.error("Merchant notification could not be delivered"); }
     }
     return NextResponse.json({ ok: true, reference: ref, quoted: hasUnpriced, pricedSubtotalJmd: subtotal, message: "Request received. We will confirm availability, prices and delivery before payment." }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
