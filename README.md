@@ -1,5 +1,13 @@
 # Cardone’s Products — luxury botanical oils storefront
 
+## Editorial storefront redesign (November 2026)
+
+The homepage now features a professionally art-directed Cardone’s campaign hero using the actual Cardone’s castor-oil label on an amber glass bottle, refined serif brand typography, warm travertine and botanical imagery, a curated six-product gallery, and more spacious, premium shopping cards. Each product card uses a transparent-background bottle cutout; original label images are retained as an alternate view on product pages.
+
+The **GitHub Pages link is a static demonstration only**, with a persistent cart and safe simulated checkout but no order collection or charges. The production Next.js API and Supabase checkout remain in the codebase for deployment to a suitable commercial host.
+
+
+
 A mobile-responsive, Jamaica-first e-commerce storefront built with Next.js, TypeScript, CSS, Supabase order requests and real Cardone’s label artwork. **The storefront is ready for review, but payments are not enabled.**
 
 ## The catalogue

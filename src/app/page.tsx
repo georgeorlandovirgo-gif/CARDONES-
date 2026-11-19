@@ -1,19 +1,49 @@
 import Image from "next/image";
-import { assetUrl } from "@/lib/asset-url";
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, ArrowUpRight, Heart, Leaf, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Droplets, Heart, Leaf, PackageCheck, Sparkles, Sun, Sprout, MapPin } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { featuredProducts } from "@/lib/catalog";
+import { assetUrl } from "@/lib/asset-url";
 
-export default function HomePage(){return <>
-  <section className="hero"><div className="hero-decor hero-decor-one"/><div className="hero-decor hero-decor-two"/><div className="container hero-layout">
-    <div className="hero-copy"><div className="hero-kicker"><span/> PURELY BEAUTIFUL. DISTINCTLY CARDONE’S.</div><h1>Nature’s finest.<br/><em>Beautifully</em><br/>bottled.</h1><p>Meet your new everyday ritual. A refined collection of botanical hair and skin oils, with a touch of Jamaican warmth in every detail.</p><div className="hero-buttons"><Link href="/shop" className="button button-gold">Shop the collection <ArrowRight size={17}/></Link><Link href="/about" className="button button-link-light">Our story <ArrowUpRight size={18}/></Link></div><div className="hero-note"><span className="hero-note-line"/> PACKAGED IN ST. ELIZABETH, JAMAICA</div></div>
-    <div className="hero-art"><div className="hero-ring hero-ring-a"/><div className="hero-ring hero-ring-b"/><div className="hero-art-glow"/><div className="hero-product-photo"><Image src={assetUrl("/images/castor-studio-bottle.webp")} alt="Cardone's Castor Oil luxury amber glass bottle with signature golden label" fill priority sizes="(max-width: 800px) 85vw, 520px" /></div><div className="hero-art-label"><span>THE SIGNATURE</span><strong>Castor Oil</strong><small>5 fl oz · 148 mL</small></div><span className="hero-art-spark a">✦</span><span className="hero-art-spark b">✧</span></div>
-  </div><Link href="#collection" className="hero-scroll" aria-label="Scroll to collection"><ArrowDown size={17}/><span>DISCOVER</span></Link></section>
-  <div className="marquee"><div>BOTANICAL RITUALS <span>✧</span> JAMAICAN ROOTS <span>✧</span> MADE WITH YOU IN MIND <span>✧</span> BEAUTY IN EVERY DROP <span>✧</span> BOTANICAL RITUALS <span>✧</span> JAMAICAN ROOTS <span>✧</span> MADE WITH YOU IN MIND <span>✧</span></div></div>
-  <section className="section collection-section" id="collection"><div className="container"><div className="section-heading"><div><span className="eyebrow">DISCOVER YOUR RITUAL</span><h2>The signature <em>collection.</em></h2><p>Explore curated oils for your hair, skin, and moments of self-care.</p></div><Link href="/shop" className="underlined-link">Explore all oils <ArrowUpRight size={18}/></Link></div><div className="product-grid">{featuredProducts.map((p,i)=><ProductCard key={p.id} product={p} priority={i<2}/>)}</div></div></section>
-  <section className="story-band"><div className="container story-band-layout"><div className="story-band-art"><div className="story-art-frame"><div className="story-art-inner"><Leaf size={86} strokeWidth={0.7}/><span>ROOTED IN<br/>CARE</span></div></div><span className="story-art-caption">FROM THE HEART OF JAMAICA</span></div><div className="story-band-copy"><span className="eyebrow">THE CARDONE’S PHILOSOPHY</span><h2>Thoughtful care.<br/><em>Timeless beauty.</em></h2><p>We believe the most memorable daily rituals can begin with the simplest ingredients. At Cardone’s, we bring a personal touch to classic botanical oils—beautifully presented, easy to enjoy, and always made with you in mind.</p><Link href="/about" className="button button-outline-dark">Discover our story <ArrowUpRight size={17}/></Link></div></div></section>
-  <section className="value-section"><div className="container value-grid"><div><Sparkles size={29} strokeWidth={1.1}/><h3>Considered details</h3><p>Thoughtful packaging designed to make every bottle feel special.</p></div><div><Leaf size={29} strokeWidth={1.1}/><h3>Botanical inspiration</h3><p>Everyday hair and skin rituals inspired by familiar, versatile oils.</p></div><div><Heart size={29} strokeWidth={1.1}/><h3>Family business</h3><p>Independent Jamaican roots, with gratitude for every customer.</p></div><div><ShieldCheck size={29} strokeWidth={1.1}/><h3>Shopping made clear</h3><p>Transparent prices where confirmed and personal confirmation for quotations.</p></div></div></section>
-  <section className="editorial"><div className="container editorial-layout"><div className="editorial-image"><Image src={assetUrl("/images/olive-label.webp")} alt="Cardone’s Extra Virgin Olive Oil artisan gold and olive green label" fill sizes="(max-width: 800px) 100vw, 580px"/><div className="editorial-stamp">THE ART OF<br/><strong>THE RITUAL</strong></div></div><div className="editorial-copy"><span className="eyebrow">A LITTLE MOMENT, JUST FOR YOU</span><h2>Find your<br/><em>everyday glow.</em></h2><p>A few drops. A moment of pause. A routine that feels like yours. Explore different textures and discover the oils that suit the way you like to care for yourself.</p><Link href="/shop" className="button button-dark">Find your favourite <ArrowRight size={17}/></Link></div></div></section>
-  <section className="last-cta"><div className="container"><span className="eyebrow">DISCOVER THE COLLECTION</span><h2>Your ritual begins <em>here.</em></h2><Link href="/shop" className="button button-gold">Shop all Cardone’s oils <ArrowRight size={17}/></Link></div></section>
-</>}
+export default function HomePage(){ return <>
+  <section className="hero hero-campaign" style={{"--campaign-image": `url(${assetUrl("/images/cardones-hero-campaign.webp")})`} as CSSProperties}>
+    <div className="hero-campaign-picture" aria-hidden="true" />
+    <div className="container campaign-layout">
+      <div className="campaign-copy">
+        <div className="campaign-eyebrow"><span className="tiny-diamond">✧</span> THE CARDONE’S BOTANICAL COLLECTION <span className="tiny-diamond">✧</span></div>
+        <h1>Rooted in nature.<br/><em>Made for</em><br/>your ritual.</h1>
+        <span className="campaign-rule"/>
+        <p>Everyday botanical oils. Beautifully presented. Thoughtfully selected for your hair, skin, and moments of self-care.</p>
+        <div className="campaign-actions"><Link href="/shop" className="button button-champagne">Explore the collection <ArrowUpRight size={17}/></Link><Link className="campaign-secondary" href="/about">The Cardone’s story <ArrowRight size={17}/></Link></div>
+        <div className="campaign-origin"><MapPin size={15}/> PACKAGED IN ST. ELIZABETH, JAMAICA</div>
+      </div>
+      <div className="campaign-photo-credit">THE SIGNATURE COLLECTION <span>01 / 06</span></div>
+    </div>
+    <div className="campaign-border"/>
+  </section>
+
+  <section className="luxury-pillars" aria-label="The Cardone’s difference"><div className="container pillars-inner">
+    <div><span className="pillar-icon"><Leaf size={25} strokeWidth={1.3}/></span><p><strong>BOTANICAL BEAUTY</strong><small>Simple oils for considered care</small></p></div>
+    <div><span className="pillar-icon"><MapPin size={25} strokeWidth={1.3}/></span><p><strong>JAMAICAN ROOTS</strong><small>Packaged in St. Elizabeth</small></p></div>
+    <div><span className="pillar-icon"><PackageCheck size={25} strokeWidth={1.3}/></span><p><strong>THOUGHTFULLY PRESENTED</strong><small>Signature glass-bottle collection</small></p></div>
+    <div><span className="pillar-icon"><Heart size={25} strokeWidth={1.3}/></span><p><strong>A PERSONAL TOUCH</strong><small>A family business, with gratitude</small></p></div>
+  </div></section>
+
+  <section className="section collection-section editorial-collection" id="collection"><div className="container">
+    <div className="collection-intro"><span className="eyebrow luxe-eyebrow">DISCOVER THE COLLECTION / 01</span><div className="collection-intro-grid"><h2>Nature’s details.<br/><em>Beautifully bottled.</em></h2><div><p>From richly conditioning castor oil to lightweight golden jojoba, discover a collection designed around your everyday hair and skin rituals.</p><Link href="/shop" className="underlined-link">VIEW ALL PRODUCTS <ArrowUpRight size={17}/></Link></div></div></div>
+    <div className="product-grid luxe-product-grid">{featuredProducts.map((p,i)=><ProductCard key={p.id} product={p} priority={i<3}/>)}</div>
+  </div></section>
+
+  <section className="ritual-note"><div className="container ritual-note-inner"><span className="ritual-emblem">✦</span><div><span className="eyebrow">THE ART OF THE EVERYDAY</span><h2>A little care becomes<br/><em>a beautiful ritual.</em></h2></div><p>There is beauty in familiar things. The warmth of golden oil, the simplicity of a daily routine, and products chosen with you in mind.</p></div></section>
+
+  <section className="section ritual-edit"><div className="container ritual-edit-grid">
+     <div className="ritual-edit-media"><div className="ritual-edit-halo"/><Image src={assetUrl("/images/olive-bottle-cutout.webp")} alt="Cardone’s Extra Virgin Olive Oil presented in its gold-labelled amber glass bottle" fill sizes="(max-width: 800px) 84vw, 520px"/><span className="ritual-edit-caption">A TOUCH OF GOLD, AN EVERYDAY MOMENT</span></div>
+     <div className="ritual-edit-text"><span className="eyebrow">BOTANICAL RITUALS / 02</span><span className="ornamental-line"/><h2>Care, in its<br/><em>most considered</em><br/>form.</h2><p>Our collection brings together familiar, versatile botanical oils in a distinctive gold-labelled presentation—because the little details should feel special, too.</p><div className="ritual-list"><span><Droplets size={18}/> HAIR & SCALP CARE</span><span><Sprout size={18}/> SKIN & BODY RITUALS</span><span><Sun size={18}/> EVERYDAY SELF-CARE</span></div><Link href="/shop" className="button button-outline-dark">FIND YOUR OIL <ArrowUpRight size={18}/></Link></div>
+  </div></section>
+
+  <section className="founders-band"><div className="container founders-band-inner"><div className="founders-mark">C<span>✧</span></div><div><span className="eyebrow">MADE WITH YOU IN MIND</span><h2>A family business.<br/><em>A signature of care.</em></h2><p>Thank you for choosing Cardone’s Products. Our Jamaican roots and thoughtful presentation are at the heart of this growing botanical collection.</p><Link href="/about" className="underlined-link founders-link">OUR STORY <ArrowUpRight size={17}/></Link></div></div></section>
+
+  <section className="section closing-collection"><div className="container closing-inner"><div><span className="eyebrow">YOUR RITUAL STARTS HERE</span><h2>Find something<br/><em>beautiful for you.</em></h2><p>Explore the entire Cardone’s oil collection, including new arrivals and products coming soon.</p></div><Link href="/shop" className="button button-champagne">SHOP THE COLLECTION <ArrowUpRight size={17}/></Link></div></section>
+  </>;
+}

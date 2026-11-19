@@ -1,4 +1,4 @@
 import type { Metadata } from "next";
 import { ShopCatalog } from "@/components/ShopCatalog";
-export const metadata:Metadata = {title:"Shop Botanical Oils",description:"Explore Cardone's collection of hair and skin oils from Jamaica."};
-export default function ShopPage(){return <><section className="page-hero shop-hero"><div className="container"><span className="eyebrow">THE BOTANICAL COLLECTION</span><h1>Find your <em>ritual.</em></h1><p>Beautiful oils for hair, skin, and every moment of personal care.</p></div></section><section className="section shop-section"><div className="container"><ShopCatalog/></div></section></>}
+export const metadata:Metadata = {title:"Our Botanical Oil Collection",description:"Discover Cardone's luxury collection of botanical hair and skin oils, presented in amber glass."};
+export default function ShopPage(){return <><section className="page-hero shop-hero luxury-shop-hero"><div className="container"><span className="eyebrow">THE CARDONE’S BOTANICAL COLLECTION / 01—06</span><h1>An oil for <em>every ritual.</em></h1><p>Explore carefully presented botanical oils for hair, skin, and daily care. Discover your favourites and new additions to the collection.</p></div></section><section className="section shop-section"><div className="container"><ShopCatalog/></div></section></>}
