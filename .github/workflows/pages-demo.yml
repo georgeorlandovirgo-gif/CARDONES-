@@ -1,0 +1,50 @@
+name: Publish Cardone's DEMO to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages-demo"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAGES_PREVIEW: "true"
+      NEXT_PUBLIC_BASE_PATH: "/CARDONES-"
+      NEXT_PUBLIC_STORE_DEMO: "1"
+      NEXT_PUBLIC_SITE_URL: "https://georgeorlandovirgo-gif.github.io/CARDONES-"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Remove server-only API endpoints from static preview build
+        run: rm -rf src/app/api
+      - name: Build static preview with real product images and working client cart
+        run: npm run build
+      - name: Upload static preview
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy preview
+        id: deployment
+        uses: actions/deploy-pages@v4
