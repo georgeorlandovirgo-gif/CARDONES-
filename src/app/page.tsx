@@ -7,7 +7,7 @@ import { featuredProducts } from "@/lib/catalog";
 import { assetUrl } from "@/lib/asset-url";
 
 export default function HomePage(){ return <>
-  <section className="hero hero-campaign" style={{"--campaign-image": `url(${assetUrl("/images/cardones-hero-campaign.webp")})`} as CSSProperties}>
+  <section className="hero hero-campaign" style={{"--campaign-image": `url(${assetUrl("/images/cardones-hero-campaign.webp")})`, "--campaign-mobile-image": `url(${assetUrl("/images/cardones-mobile-campaign.webp")})`} as CSSProperties}>
     <div className="hero-campaign-picture" aria-hidden="true" />
     <div className="container campaign-layout">
       <div className="campaign-copy">
