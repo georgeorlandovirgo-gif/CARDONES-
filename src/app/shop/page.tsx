@@ -1,0 +1,4 @@
+import type { Metadata } from "next";
+import { ShopCatalog } from "@/components/ShopCatalog";
+export const metadata:Metadata = {title:"Shop Botanical Oils",description:"Explore Cardone's collection of hair and skin oils from Jamaica."};
+export default function ShopPage(){return <><section className="page-hero shop-hero"><div className="container"><span className="eyebrow">THE BOTANICAL COLLECTION</span><h1>Find your <em>ritual.</em></h1><p>Beautiful oils for hair, skin, and every moment of personal care.</p></div></section><section className="section shop-section"><div className="container"><ShopCatalog/></div></section></>}

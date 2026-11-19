@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound(){return <section className="simple-message"><span className="eyebrow">404 / PAGE NOT FOUND</span><h1>Something beautiful<br/><em>is missing.</em></h1><p>Let’s get you back to the collection.</p><Link href="/shop" className="button button-dark">Explore the oils</Link></section>}

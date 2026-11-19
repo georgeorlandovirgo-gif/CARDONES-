@@ -1,0 +1,14 @@
+import Link from "next/link";
+import { ArrowUpRight, Instagram, Leaf } from "lucide-react";
+export function Footer() {
+  return <footer className="footer"><div className="container">
+    <div className="footer-top"><div><span className="eyebrow">BOTANICAL BEAUTY, THE CARDONE’S WAY</span><h2>Rituals rooted<br/><em>in nature.</em></h2></div><Link href="/shop" className="button button-outline-light">Explore the collection <ArrowUpRight size={17}/></Link></div>
+    <div className="footer-divider"/>
+    <div className="footer-columns"><div className="footer-brand"><Link href="/" className="footer-wordmark">CARDONE’S <span>PRODUCTS</span></Link><p>A thoughtfully presented collection of hair and skin oils, packaged in St. Elizabeth, Jamaica.</p><p className="footer-location"><Leaf size={15}/> Made with you in mind.</p></div>
+      <div><h4>Discover</h4><Link href="/shop">Shop all oils</Link><Link href="/about">Our story</Link><Link href="/faq">How to use our oils</Link></div>
+      <div><h4>Help & information</h4><Link href="/policies#delivery">Delivery & pickup</Link><Link href="/policies#returns">Returns & exchanges</Link><Link href="/policies#privacy">Privacy</Link><Link href="/faq">Frequently asked questions</Link></div>
+      <div><h4>Let’s connect</h4><p>Questions about an oil or your order? Contact details will appear here once confirmed.</p>{process.env.NEXT_PUBLIC_CONTACT_EMAIL && <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`}>{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</a>}{process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}`}>Chat with us on WhatsApp</a>}<span className="footer-ig"><Instagram size={17}/> Social links coming soon</span></div>
+    </div>
+    <div className="footer-bottom"><span>© {new Date().getFullYear()} Cardone’s Products. All rights reserved.</span><span>Crafted with care for Jamaica <span className="footer-spark">✦</span></span></div>
+  </div></footer>;
+}
