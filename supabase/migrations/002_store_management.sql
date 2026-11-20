@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
  delivery_information TEXT,
  pickup_information TEXT,
  delivery_fee_jmd INTEGER CHECK (delivery_fee_jmd >= 0),
- store_paused BOOLEAN NOT NULL DEFAULT FALSE,
+ store_paused BOOLEAN NOT NULL DEFAULT TRUE,
  policies TEXT,
  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

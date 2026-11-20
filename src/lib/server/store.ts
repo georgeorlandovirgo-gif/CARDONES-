@@ -74,7 +74,7 @@ export function normalizeProduct(row:ProductRecord,variants:ProductRecord[]):Pro
  featured:row.featured===true,badge:typeof row.badge==='string'?row.badge:undefined,
  variants:variants.filter(v=>v.product_id===row.id).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0))
  .map(v=>({id:String(v.id),label:String(v.label),ml:Number(v.ml),
- priceJmd:v.price_jmd===null?null:Number(v.price_jmd),available:v.available===true}))};
+ priceJmd:v.price_jmd===null?null:Number(v.price_jmd),available:v.available===true,stockCount:typeof v.stock_count==="number"?v.stock_count:null}))};
 }
 export async function catalog():Promise<Product[]> {
  const sb=db();const [p,v]=await Promise.all([

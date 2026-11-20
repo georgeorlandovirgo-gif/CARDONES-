@@ -34,18 +34,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const add = useCallback((productId: string, variantId: string, quantity = 1) => {
     const entry = variantById(productId, variantId);
-    if (!entry || !entry.variant.available) return false;
+    if (!entry || !entry.variant.available || entry.variant.stockCount===0) return false;
     setLines((prev) => {
       const existing = prev.find((x) => x.productId === productId && x.variantId === variantId);
-      if (!existing) return [...prev, { productId, variantId, quantity: Math.min(20, Math.max(1, quantity)) }];
-      return prev.map((x) => x === existing ? { ...x, quantity: Math.min(20, x.quantity + quantity) } : x);
+      if (!existing) return [...prev, { productId, variantId, quantity: Math.min(20,entry.variant.stockCount??20,Math.max(1, quantity)) }];
+      return prev.map((x) => x === existing ? { ...x, quantity: Math.min(20,entry.variant.stockCount??20,x.quantity + quantity) } : x);
     });
     setCartOpen(true);
     return true;
   }, [products]);
   const setQuantity = useCallback((productId: string, variantId: string, quantity: number) => {
-    setLines((prev) => prev.map((x) => x.productId === productId && x.variantId === variantId ? { ...x, quantity: Math.max(1, Math.min(20, quantity)) } : x));
-  }, []);
+    setLines((prev) => prev.map((x) => x.productId === productId && x.variantId === variantId ? { ...x, quantity: Math.max(1, Math.min(20, variantById(productId,variantId)?.variant.stockCount??20, quantity)) } : x));
+  }, [products]);
   const remove = useCallback((productId: string, variantId: string) => setLines((prev) => prev.filter((x) => !(x.productId === productId && x.variantId === variantId))), []);
   const clear = useCallback(() => setLines([]), []);
   const { count, subtotal, hasUnpriced } = useMemo(() => lines.reduce((acc, x) => {

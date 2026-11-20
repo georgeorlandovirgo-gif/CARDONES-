@@ -39,7 +39,7 @@ function ProductEditor({value,onSave,onUpload,busy}:{value:RecordData;onSave:(p:
  <button type="button" className="button button-outline-dark" onClick={()=>patch('variants',[...variants,{id:`${p.id}-${Date.now().toString(36)}`,label:'New size',ml:60,priceJmd:null,available:false,stockCount:null}])}><Plus size={16}/> Add size</button>
  <p className="status-note">Products without confirmed prices may still appear in the store as enquiries. Deactivate a size to mark it coming soon.</p>
  {status&&<p role="status" className="status-note">{status}</p>}
- <button className="button button-dark" disabled={busy||variants.length===0} type="button" onClick={()=>void onSave(p)}><Save size={16}/> Save product</button></div>;
+ <button className="button button-dark" disabled={busy||variants.length===0} type="button" onClick={()=>{const canonical=textVal(p.slug||p.name).toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');const id=textVal(p.id)||canonical;const safeVariants=variants.map((v,i)=>({...v,id:textVal(v.id)||`${id}-${Number(v.ml)||60}-${i}`}));void onSave({...p,id,slug:canonical,variants:safeVariants});}}><Save size={16}/> Save product</button></div>;
 }
 export default function AdminPage(){
  const [sb,setSb]=useState<SupabaseClient|null>(null),[jwt,setJwt]=useState(''),[credentials,setCredentials]=useState({email:'',password:''});

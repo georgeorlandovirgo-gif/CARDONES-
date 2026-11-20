@@ -68,6 +68,8 @@ _Designed for Cardone’s Products, packaged in St. Elizabeth, Jamaica._
 
 ## Advanced owner dashboard and commerce backend (2026 upgrade)
 
+New database installations begin with **store_paused = true**; the owner must explicitly enable ordering before production checkout will accept requests.
+
 The repository now includes `/admin`, Supabase-authenticated owner APIs, a fully editable catalogue, merchant contact settings, COD/bank/WhatsApp toggles, private receipt upload and review, product image upload, order statuses and an audit trail. These require a production Next.js server and are **deliberately inactive on the static GitHub Pages preview**.
 
 ### Before activating the production storefront

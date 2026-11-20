@@ -1,5 +1,5 @@
 export type Collection = "Hair" | "Skin" | "Multipurpose";
-export type OilVariant = { id: string; label: string; ml: number; priceJmd: number | null; available: boolean };
+export type OilVariant = { id: string; label: string; ml: number; priceJmd: number | null; available: boolean; stockCount?: number | null };
 export type Product = {
   id: string;
   slug: string;
