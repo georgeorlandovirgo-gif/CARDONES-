@@ -1,4 +1,95 @@
-import type { Metadata } from "next";
-import { AdminDashboard } from "@/components/AdminDashboard";
-export const metadata: Metadata={title:"Store Management | Cardone’s",robots:{index:false,follow:false}};
-export default function AdminPage(){return <AdminDashboard/>;}
+'use client';
+import {useEffect,useState,type FormEvent} from 'react';
+import {createClient,type SupabaseClient} from '@supabase/supabase-js';
+import {ArrowRight,CheckCircle2,LockKeyhole,LogOut,Plus,Save,UploadCloud} from 'lucide-react';
+import {products as sampleProducts,type Product} from '@/lib/catalog';
+
+type RecordData=Record<string,unknown>;
+type DashboardTab='overview'|'settings'|'products'|'orders'|'audit';
+const blankSettings:RecordData={phone:'',whatsapp:'',email:'',instagram:'',facebook:'',location:'St. Elizabeth, Jamaica',contact_hours:'',
+ bank_enabled:false,bank_name:'',bank_holder:'',bank_account:'',bank_branch:'',bank_type:'',bank_instructions:'',
+ cod_enabled:false,whatsapp_enabled:false,delivery_enabled:true,pickup_enabled:true,delivery_information:'',pickup_information:'',
+ delivery_fee_jmd:null,store_paused:false,policies:''};
+function client(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+ if(!url||!key)return null;return createClient(url,key,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}});}
+function textVal(v:unknown){return v===null||v===undefined?'':String(v);}
+function ProductEditor({value,onSave,onUpload,busy}:{value:RecordData;onSave:(p:RecordData)=>Promise<void>;onUpload:(f:File)=>Promise<string>;busy:boolean}){
+ const [p,setP]=useState<RecordData>(value);const [status,setStatus]=useState('');
+ useEffect(()=>{setP(value);setStatus('');},[value]);
+ const patch=(key:string,v:unknown)=>setP(d=>({...d,[key]:v}));
+ const variants=Array.isArray(p.variants)?p.variants as RecordData[]:[];
+ const updateVariant=(i:number,k:string,v:unknown)=>patch('variants',variants.map((x,j)=>j===i?{...x,[k]:v}:x));
+ async function upload(file:File){setStatus('Uploading image…');try{patch('image',await onUpload(file));setStatus('Image uploaded. Save the product to publish.');}catch(e){setStatus(e instanceof Error?e.message:'Upload failed.');}}
+ return <div className="admin-editor"><h3>Product details</h3><div className="admin-form-grid">
+ {([['name','Product name'],['slug','Page address (slug)'],['subtitle','Subtitle'],['description','Description'],['howToUse','How to use'],['ingredientsNote','Verified ingredients / sourcing'],['caution','Precautions'],['image','Product photo URL'],['labelImage','Label artwork URL'],['badge','Badge']] as const).map(([field,label])=><label key={field}>{label}<input value={textVal(p[field])} onChange={e=>patch(field,e.target.value)}/></label>)}
+ <label>Category<select value={Array.isArray(p.category)?p.category[0]:'Hair'} onChange={e=>patch('category',[e.target.value])}>{['Hair','Skin','Multipurpose'].map(s=><option key={s}>{s}</option>)}</select></label>
+ <label>Accent<select value={textVal(p.accent)} onChange={e=>patch('accent',e.target.value)}>{['amber','coconut','olive','palm','jojoba','rosemary','avocado'].map(s=><option key={s}>{s}</option>)}</select></label>
+ <label>Sort order<input type="number" min={0} max={10000} value={Number(p.sortOrder)||0} onChange={e=>patch('sortOrder',Number(e.target.value))}/></label>
+ <label className="admin-upload"><UploadCloud size={18}/> Upload product image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{const f=e.target.files?.[0];if(f)void upload(f);}}/></label>
+ <label className="admin-wide">Uses / benefits (one per line)<textarea rows={4} value={Array.isArray(p.benefits)?p.benefits.join('\n'):''} onChange={e=>patch('benefits',e.target.value.split('\n').map(x=>x.trim()).filter(Boolean))}/></label>
+ <div className="admin-switches">{[['featured','Featured product'],['active','Visible in store']] .map(([k,title])=><label key={k}><input type="checkbox" checked={p[k]===true} onChange={e=>patch(k,e.target.checked)}/>{title}</label>)}</div>
+ </div><h3>Bottle sizes & prices</h3><div className="admin-variant-list">{variants.map((v,i)=><div className="admin-variant" key={i}>
+ <label>Size ID<input value={textVal(v.id)} onChange={e=>updateVariant(i,'id',e.target.value)}/></label>
+ <label>Size label<input value={textVal(v.label)} onChange={e=>updateVariant(i,'label',e.target.value)}/></label>
+ <label>mL<input type="number" min={1} value={Number(v.ml)||60} onChange={e=>updateVariant(i,'ml',Number(e.target.value))}/></label>
+ <label>Price JMD (blank = quotation)<input type="number" min={0} value={v.priceJmd===null?'':Number(v.priceJmd)} onChange={e=>updateVariant(i,'priceJmd',e.target.value===''?null:Number(e.target.value))}/></label>
+ <label>Stock count (blank = not tracked)<input type="number" min={0} value={v.stockCount===null||v.stockCount===undefined?'':Number(v.stockCount)} onChange={e=>updateVariant(i,'stockCount',e.target.value===''?null:Number(e.target.value))}/></label>
+ <label className="admin-check"><input type="checkbox" checked={v.available===true} onChange={e=>updateVariant(i,'available',e.target.checked)}/> Available</label>
+ <button type="button" className="text-button" onClick={()=>patch('variants',variants.filter((_,j)=>j!==i))}>Remove size</button></div>)}</div>
+ <button type="button" className="button button-outline-dark" onClick={()=>patch('variants',[...variants,{id:`${p.id}-${Date.now().toString(36)}`,label:'New size',ml:60,priceJmd:null,available:false,stockCount:null}])}><Plus size={16}/> Add size</button>
+ <p className="status-note">Products without confirmed prices may still appear in the store as enquiries. Deactivate a size to mark it coming soon.</p>
+ {status&&<p role="status" className="status-note">{status}</p>}
+ <button className="button button-dark" disabled={busy||variants.length===0} type="button" onClick={()=>void onSave(p)}><Save size={16}/> Save product</button></div>;
+}
+export default function AdminPage(){
+ const [sb,setSb]=useState<SupabaseClient|null>(null),[jwt,setJwt]=useState(''),[credentials,setCredentials]=useState({email:'',password:''});
+ const [tab,setTab]=useState<DashboardTab>('overview'),[settings,setSettings]=useState<RecordData>(blankSettings),[summary,setSummary]=useState<RecordData>({});
+ const [products,setProducts]=useState<RecordData[]>([]),[variants,setVariants]=useState<RecordData[]>([]),[orders,setOrders]=useState<RecordData[]>([]),[audits,setAudits]=useState<RecordData[]>([]);
+ const [selected,setSelected]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+ const preview=process.env.NEXT_PUBLIC_STORE_DEMO==='1';
+ useEffect(()=>{if(preview)return;const next=client();if(!next)return;setSb(next);next.auth.getSession().then(x=>setJwt(x.data.session?.access_token||''));
+ const {data:{subscription}}=next.auth.onAuthStateChange((_event,session)=>setJwt(session?.access_token||''));return ()=>subscription.unsubscribe();},[preview]);
+ async function request(section:DashboardTab,body?:RecordData){
+  if(!sb)throw Error('Authentication is not configured.');
+  const {data:{session}}=await sb.auth.getSession();if(!session?.access_token)throw Error('Owner login required.');
+  const res=await fetch(`/api/admin${body?'':`?section=${section}`}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${session.access_token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  const result=await res.json();if(!res.ok)throw Error(result.error||'Store request failed.');return result;
+ }
+ async function load(which:DashboardTab){setMessage('');setBusy(true);setTab(which);
+  try{const r=await request(which);if(which==='settings')setSettings({...blankSettings,...r.settings});if(which==='products'){setProducts(r.products);setVariants(r.variants);}if(which==='orders')setOrders(r.orders);if(which==='audit')setAudits(r.audit);if(which==='overview')setSummary(r);}catch(e){setMessage(e instanceof Error?e.message:'Unable to load.');}finally{setBusy(false);}
+ }
+ useEffect(()=>{if(jwt)void load('overview');},[jwt]);
+ async function save(action:RecordData){setBusy(true);setMessage('');try{await request(tab,action);setMessage('Saved successfully.');await load(tab);}catch(e){setMessage(e instanceof Error?e.message:'Save failed.');}finally{setBusy(false);}}
+ async function upload(file:File){if(!sb)throw Error('Sign in first.');const {data:{session}}=await sb.auth.getSession();if(!session)throw Error('Session expired.');
+  const body=new FormData();body.set('image',file);const res=await fetch('/api/admin/upload',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},body});const data=await res.json();if(!res.ok)throw Error(data.error);return data.url as string;}
+ async function viewReceipt(orderId:string){if(!sb)return;const {data:{session}}=await sb.auth.getSession();if(!session)return;try{const r=await fetch(`/api/admin/receipt?orderId=${encodeURIComponent(orderId)}`,{headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'});const x=await r.json();if(!r.ok)throw Error(x.error);window.open(x.url,'_blank','noopener,noreferrer');}catch(e){setMessage(e instanceof Error?e.message:'Receipt unavailable.');}}
+ async function login(e:FormEvent){e.preventDefault();setBusy(true);setMessage('');if(!sb){setMessage('Set Supabase public credentials on your production host first.');setBusy(false);return;}
+  const {error}=await sb.auth.signInWithPassword(credentials);if(error)setMessage(error.message);setBusy(false);}
+ if(preview)return <section className="section"><div className="container admin-preview"><LockKeyhole size={36}/><h1>Store management</h1><p>The owner dashboard requires a secure production server and Supabase authentication. It is deliberately disabled on the public GitHub Pages design preview.</p></div></section>;
+ if(!sb)return <section className="section"><div className="container admin-preview"><h1>Store management</h1><p>Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> on the production host to activate secure owner login.</p></div></section>;
+ if(!jwt)return <section className="section"><div className="container admin-login"><span className="eyebrow">PRIVATE OWNER ACCESS</span><h1>Cardone’s Studio</h1><p>Sign in with your authorised Supabase owner account.</p><form onSubmit={login}><label>Email<input type="email" required autoComplete="username" value={credentials.email} onChange={e=>setCredentials({...credentials,email:e.target.value})}/></label><label>Password<input type="password" required autoComplete="current-password" value={credentials.password} onChange={e=>setCredentials({...credentials,password:e.target.value})}/></label><button type="submit" disabled={busy} className="button button-dark">Sign in <ArrowRight size={16}/></button>{message&&<p role="alert">{message}</p>}</form></div></section>;
+ const edit=products.find(p=>p.id===selected);
+ const editAsProduct=(v:RecordData):RecordData=>({id:v.id,slug:v.slug,name:v.name,subtitle:v.subtitle,description:v.description,image:v.image,labelImage:v.label_image,
+ benefits:v.benefits,howToUse:v.how_to_use,ingredientsNote:v.ingredients_note,caution:v.caution,category:v.categories,accent:v.accent,
+ featured:v.featured,active:v.active,badge:v.badge,sortOrder:v.sort_order,
+ variants:variants.filter(x=>x.product_id===v.id).map(x=>({id:x.id,label:x.label,ml:x.ml,priceJmd:x.price_jmd,available:x.available,stockCount:x.stock_count}))});
+ return <section className="admin-shell"><div className="container"><div className="admin-top"><div><span className="eyebrow">CARDONE’S PRODUCTS · OWNER ONLY</span><h1>Store management</h1></div><button className="button button-outline-dark" onClick={()=>void sb.auth.signOut()}><LogOut size={17}/> Sign out</button></div>
+ <nav className="admin-tabs" aria-label="Store management">{(['overview','settings','products','orders','audit'] as const).map(name=><button key={name} className={tab===name?'selected':''} onClick={()=>void load(name)}>{name==='audit'?'Change history':name[0].toUpperCase()+name.slice(1)}</button>)}</nav>
+ {message&&<p role="status" className="status-note">{message}</p>}
+ {tab==='overview'&&<div className="admin-metrics">{[['Orders',summary.ordersCount],['Completed orders',summary.completed],['Completed-order value (JMD)',summary.verifiedRevenueJmd],['Awaiting payment review',summary.awaitingPayment]].map(([a,b])=><div key={a}><span>{a}</span><strong>{b===undefined?'—':Number(b).toLocaleString('en-JM')}</strong></div>)}</div>}
+ {tab==='settings'&&<div className="admin-panel"><h2>Business contact & store settings</h2><p>Changes here update the production storefront. Bank account changes are logged. Never save online-banking passwords here.</p><div className="admin-form-grid">
+ {([['phone','Business telephone'],['whatsapp','WhatsApp Business number'],['email','Customer-service email'],['instagram','Instagram URL'],['facebook','Facebook URL'],['location','Business location'],['contact_hours','Contact hours'],['delivery_information','Delivery details'],['pickup_information','Pickup details'],['policies','Store policies']] as const).map(([k,label])=><label key={k}>{label}<input value={textVal(settings[k])} onChange={e=>setSettings({...settings,[k]:e.target.value})}/></label>)}
+ <label>Delivery fee JMD (leave empty if not confirmed)<input type="number" min={0} value={settings.delivery_fee_jmd===null?'':Number(settings.delivery_fee_jmd)||0} onChange={e=>setSettings({...settings,delivery_fee_jmd:e.target.value===''?null:Number(e.target.value)})}/></label>
+ </div><h3>Bank transfer (private owner controls)</h3><div className="admin-form-grid">{([['bank_name','Bank'],['bank_holder','Account holder'],['bank_account','Account number'],['bank_branch','Branch'],['bank_type','Account type'],['bank_instructions','Customer-facing transfer instructions']] as const).map(([k,label])=><label key={k}>{label}<input value={textVal(settings[k])} onChange={e=>setSettings({...settings,[k]:e.target.value})}/></label>)}</div>
+ <h3>Enabled checkout options</h3><div className="admin-switches">{([['bank_enabled','Bank transfer'],['cod_enabled','Cash on delivery / pickup'],['whatsapp_enabled','WhatsApp orders'],['delivery_enabled','Delivery'],['pickup_enabled','Pickup'],['store_paused','Temporarily pause orders']] as const).map(([k,label])=><label key={k}><input type="checkbox" checked={settings[k]===true} onChange={e=>setSettings({...settings,[k]:e.target.checked})}/>{label}</label>)}</div>
+ {settings.bank_enabled===true&&<div className="bank-panel"><strong>Customer-facing bank details preview</strong><p>{textVal(settings.bank_name)} · {textVal(settings.bank_holder)}</p><p>{textVal(settings.bank_account)} · {textVal(settings.bank_branch)} · {textVal(settings.bank_type)}</p><p>{textVal(settings.bank_instructions)}</p></div>}
+ <button className="button button-dark" disabled={busy} onClick={()=>void save({action:'saveSettings',settings})}><Save size={17}/> Save settings</button></div>}
+ {tab==='products'&&<div className="admin-panel"><div className="admin-panel-heading"><div><h2>Product catalogue</h2><p>Edit prices, bottle sizes, descriptions, photos and availability without modifying GitHub.</p></div><button className="button button-outline-dark" onClick={()=>setSelected('__new__')}><Plus size={16}/> New product</button></div>
+ {!products.length&&<button className="button button-dark" disabled={busy} onClick={()=>void save({action:'seedCatalog'})}>Import seven existing Cardone’s products</button>}
+ <div className="admin-product-list">{products.map(p=><button key={textVal(p.id)} className={selected===p.id?'selected':''} onClick={()=>setSelected(textVal(p.id))}>{textVal(p.name)}<span>{p.active?'Visible':'Hidden'}</span></button>)}</div>
+ {selected==='__new__'?<ProductEditor value={{id:'',slug:'',name:'',subtitle:'',description:'',benefits:[],howToUse:'',ingredientsNote:'',caution:'',category:['Hair'],accent:'amber',featured:false,active:false,sortOrder:products.length,variants:[{id:'',label:'2 fl oz · 60 mL',ml:60,priceJmd:null,available:false}]}} onSave={p=>save({action:'saveProduct',product:p})} onUpload={upload} busy={busy}/>:edit&&<ProductEditor key={textVal(edit.id)} value={editAsProduct(edit)} onSave={p=>save({action:'saveProduct',product:p})} onUpload={upload} busy={busy}/>}
+ </div>}
+ {tab==='orders'&&<div className="admin-panel"><h2>Customer requests & orders</h2><p>Payment must be checked independently before marking it verified. Customer details are visible only to the authenticated owner.</p><div className="admin-orders">{orders.map(o=><article key={textVal(o.id)}><div className="admin-order-top"><strong>{textVal(o.reference)}</strong><span>{new Date(textVal(o.created_at)).toLocaleDateString('en-JM')}</span></div><p>{textVal(o.customer_name)} · {textVal(o.phone)} · {textVal(o.parish)}</p><p>{textVal(o.email)} {textVal(o.address)}</p><p>Payment method: {textVal(o.payment_method)} · Priced subtotal: J${Number(o.priced_subtotal_jmd||0).toLocaleString('en-JM')}</p><details><summary>Items and notes</summary><pre>{JSON.stringify(o.lines,null,2)}</pre><p>{textVal(o.notes)}</p>{o.receipt_path&&<button type="button" className="button button-outline-dark" onClick={()=>void viewReceipt(textVal(o.id))}>Open private receipt (60-second link)</button>}</details><label>Fulfilment / payment status<select value={textVal(o.status)} disabled={busy} onChange={e=>void save({action:'updateOrder',id:o.id,status:e.target.value})}>{['new_request','pending','awaiting_payment','payment_submitted','payment_verified','processing','ready_for_pickup','dispatched','completed','cancelled','quoted','confirmed','fulfilled'].map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label></article>)}</div></div>}
+ {tab==='audit'&&<div className="admin-panel"><h2>Administrative change history</h2><p>Recent owner actions, including banking changes and manual payment verifications.</p>{audits.map((a,i)=><p className="admin-audit" key={i}><strong>{textVal(a.event)}</strong> · {textVal(a.entity_id)} · {new Date(textVal(a.created_at)).toLocaleString('en-JM')}</p>)}</div>}
+ </div></section>;
+}

@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { checkOwner } from "@/lib/server/database";
-export const dynamic="force-dynamic";
-export async function GET(req:NextRequest) {
- const owner=await checkOwner(req);if("error" in owner)return NextResponse.json({message:owner.error},{status:owner.status});
- const ref=req.nextUrl.searchParams.get("reference");
- if(!ref||ref.length>80)return NextResponse.json({message:"Invalid reference."},{status:400});
- const {data,error}=await owner.db.from("store_orders").select("receipt_path").eq("reference",ref).maybeSingle();
- if(error || !data?.receipt_path)return NextResponse.json({message:"No receipt attached."},{status:404});
- const signed=await owner.db.storage.from("cardones-receipts").createSignedUrl(data.receipt_path,60);
- if(signed.error||!signed.data)return NextResponse.json({message:"Receipt temporarily unavailable."},{status:503});
- return NextResponse.json({ok:true,url:signed.data.signedUrl},{headers:{"Cache-Control":"private,no-store"}});
+import {NextRequest,NextResponse} from 'next/server';
+import {z} from 'zod';
+import {db,owner} from '@/lib/server/store';
+export const runtime='nodejs';
+export async function GET(req:NextRequest){
+ try{
+  if(!await owner(req))return NextResponse.json({error:'Owner only.'},{status:403});
+  const id=new URL(req.url).searchParams.get('orderId');
+  if(!z.string().uuid().safeParse(id).success)return NextResponse.json({error:'Invalid order reference.'},{status:400});
+  const sb=db();const {data,error}=await sb.from('store_orders').select('receipt_path').eq('id',id!).single();
+  if(error||!data?.receipt_path)return NextResponse.json({error:'Receipt not found.'},{status:404});
+  const signed=await sb.storage.from('cardones-receipts').createSignedUrl(data.receipt_path,60);
+  if(signed.error||!signed.data?.signedUrl)return NextResponse.json({error:'Receipt temporarily unavailable.'},{status:503});
+  return NextResponse.json({url:signed.data.signedUrl},{headers:{'Cache-Control':'no-store'}});
+ }catch{return NextResponse.json({error:'Unable to open receipt.'},{status:503});}
 }
