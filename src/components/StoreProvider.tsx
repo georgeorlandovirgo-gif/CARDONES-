@@ -30,7 +30,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     catch { setLines([]); }
     setLoaded(true);
   }, []);
-  useEffect(() => { if (loaded) localStorage.setItem(CART_KEY, JSON.stringify(lines)); }, [loaded, lines]);
+  useEffect(() => { if (loaded) { try { localStorage.setItem(CART_KEY, JSON.stringify(lines)); } catch { /* Shopping still works if storage is unavailable. */ } } }, [loaded, lines]);
 
   const add = useCallback((productId: string, variantId: string, quantity = 1) => {
     const entry = variantById(productId, variantId);

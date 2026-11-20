@@ -1,0 +1,6 @@
+// Accept Next.js options and the managed preview service's conventional host flags.
+import {spawn} from 'node:child_process';
+const args=process.argv.slice(2).filter(a=>a!=='--strictPort').map(a=>a==='--host'?'--hostname':a);
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev',...args],{stdio:'inherit',env:{...process.env,CARDONES_DEV:'1'}});
+child.on('exit',code=>process.exit(code??1));
+for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>child.kill(signal));

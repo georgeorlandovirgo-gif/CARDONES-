@@ -1,0 +1,242 @@
+[
+  {
+    "page": "/checkout",
+    "viewport": 320,
+    "client": 305,
+    "scroll": 305
+  },
+  {
+    "page": "/checkout",
+    "viewport": 360,
+    "client": 345,
+    "scroll": 345
+  },
+  {
+    "page": "/checkout",
+    "viewport": 375,
+    "client": 360,
+    "scroll": 360
+  },
+  {
+    "page": "/checkout",
+    "viewport": 390,
+    "client": 375,
+    "scroll": 375
+  },
+  {
+    "page": "/checkout",
+    "viewport": 430,
+    "client": 415,
+    "scroll": 415
+  },
+  {
+    "page": "/checkout",
+    "viewport": 768,
+    "client": 753,
+    "scroll": 753
+  },
+  {
+    "page": "/checkout",
+    "viewport": 1024,
+    "client": 1009,
+    "scroll": 1009
+  },
+  {
+    "page": "/checkout",
+    "viewport": 1440,
+    "client": 1425,
+    "scroll": 1425
+  },
+  {
+    "page": "/shop",
+    "viewport": 320,
+    "client": 305,
+    "scroll": 305
+  },
+  {
+    "page": "/shop",
+    "viewport": 360,
+    "client": 345,
+    "scroll": 345
+  },
+  {
+    "page": "/shop",
+    "viewport": 375,
+    "client": 360,
+    "scroll": 360
+  },
+  {
+    "page": "/shop",
+    "viewport": 390,
+    "client": 375,
+    "scroll": 375
+  },
+  {
+    "page": "/shop",
+    "viewport": 430,
+    "client": 415,
+    "scroll": 415
+  },
+  {
+    "page": "/shop",
+    "viewport": 768,
+    "client": 753,
+    "scroll": 753
+  },
+  {
+    "page": "/shop",
+    "viewport": 1024,
+    "client": 1009,
+    "scroll": 1009
+  },
+  {
+    "page": "/shop",
+    "viewport": 1440,
+    "client": 1425,
+    "scroll": 1425
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 320,
+    "client": 305,
+    "scroll": 305
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 360,
+    "client": 345,
+    "scroll": 345
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 375,
+    "client": 360,
+    "scroll": 360
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 390,
+    "client": 375,
+    "scroll": 375
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 430,
+    "client": 415,
+    "scroll": 415
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 768,
+    "client": 753,
+    "scroll": 753
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 1024,
+    "client": 1009,
+    "scroll": 1009
+  },
+  {
+    "page": "/products/castor-oil",
+    "viewport": 1440,
+    "client": 1425,
+    "scroll": 1425
+  },
+  {
+    "page": "/admin",
+    "viewport": 320,
+    "client": 305,
+    "scroll": 305
+  },
+  {
+    "page": "/admin",
+    "viewport": 360,
+    "client": 345,
+    "scroll": 345
+  },
+  {
+    "page": "/admin",
+    "viewport": 375,
+    "client": 360,
+    "scroll": 360
+  },
+  {
+    "page": "/admin",
+    "viewport": 390,
+    "client": 375,
+    "scroll": 375
+  },
+  {
+    "page": "/admin",
+    "viewport": 430,
+    "client": 415,
+    "scroll": 415
+  },
+  {
+    "page": "/admin",
+    "viewport": 768,
+    "client": 753,
+    "scroll": 753
+  },
+  {
+    "page": "/admin",
+    "viewport": 1024,
+    "client": 1009,
+    "scroll": 1009
+  },
+  {
+    "page": "/admin",
+    "viewport": 1440,
+    "client": 1425,
+    "scroll": 1425
+  },
+  {
+    "page": "/",
+    "viewport": 320,
+    "client": 305,
+    "scroll": 305
+  },
+  {
+    "page": "/",
+    "viewport": 360,
+    "client": 345,
+    "scroll": 345
+  },
+  {
+    "page": "/",
+    "viewport": 375,
+    "client": 360,
+    "scroll": 360
+  },
+  {
+    "page": "/",
+    "viewport": 390,
+    "client": 375,
+    "scroll": 375
+  },
+  {
+    "page": "/",
+    "viewport": 430,
+    "client": 415,
+    "scroll": 415
+  },
+  {
+    "page": "/",
+    "viewport": 768,
+    "client": 753,
+    "scroll": 753
+  },
+  {
+    "page": "/",
+    "viewport": 1024,
+    "client": 1009,
+    "scroll": 1009
+  },
+  {
+    "page": "/",
+    "viewport": 1440,
+    "client": 1425,
+    "scroll": 1425
+  }
+]

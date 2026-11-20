@@ -1,4 +1,5 @@
 import 'server-only';
+import {parishes,jamaicanPhone} from '@/lib/commerce';
 import { createClient } from '@supabase/supabase-js';
 import type { NextRequest } from 'next/server';
 import { createHash, createHmac } from 'node:crypto';
@@ -20,14 +21,9 @@ export async function owner(req: NextRequest) {
  if(error || !user || !allowed.includes(user.id)) return null;
  return user;
 }
-export function toPhone(raw: string | null) {
- if(!raw)return null;
- const digits=raw.replace(/\D/g,'');
- if(/^1?876\d{7}$/.test(digits)||/^1?658\d{7}$/.test(digits))return digits.length===10?'1'+digits:digits;
- return null;
-}
+export function toPhone(raw:string|null){return raw?jamaicanPhone(raw):null;}
 export type MerchantSettings = {
- phone: string | null; whatsapp: string | null; email: string | null;
+ available_parishes: string[]; phone: string | null; whatsapp: string | null; email: string | null;
  instagram: string | null; facebook: string | null; location: string | null;
  contact_hours: string | null; bank_enabled:boolean; cod_enabled:boolean;
  whatsapp_enabled:boolean; delivery_enabled:boolean; pickup_enabled:boolean;
@@ -36,11 +32,11 @@ export type MerchantSettings = {
  bank_branch:string|null;bank_type:string|null;bank_instructions:string|null; policies:string|null;
 };
 export const fallbackSettings:MerchantSettings={
- phone:null,whatsapp:null,email:null,instagram:null,facebook:null,
+ available_parishes:[...parishes],phone:null,whatsapp:null,email:null,instagram:null,facebook:null,
  location:'St. Elizabeth, Jamaica', contact_hours:null,
  bank_enabled:false,cod_enabled:false,whatsapp_enabled:false,
  delivery_enabled:true,pickup_enabled:true,delivery_information:null,pickup_information:null,
- delivery_fee_jmd:null,store_paused:false,bank_name:null,bank_holder:null,
+ delivery_fee_jmd:null,store_paused:true,bank_name:null,bank_holder:null,
  bank_account:null,bank_branch:null,bank_type:null,bank_instructions:null,policies:null
 };
 export async function settings():Promise<MerchantSettings>{
@@ -50,7 +46,7 @@ export async function settings():Promise<MerchantSettings>{
 }
 export function publicSettings(s:MerchantSettings){
  // Bank account details are CUSTOMER-FACING only when the merchant enables transfer.
- return {phone:s.phone,whatsapp:s.whatsapp_enabled?s.whatsapp:null,email:s.email,
+ return {availableParishes:s.available_parishes,phone:s.phone,whatsapp:s.whatsapp_enabled?s.whatsapp:null,email:s.email,
  instagram:s.instagram,facebook:s.facebook,location:s.location,contactHours:s.contact_hours,
  payment:{bankTransfer:s.bank_enabled&&Boolean(s.bank_account&&s.bank_name),
  cash:s.cod_enabled,whatsapp:s.whatsapp_enabled&&Boolean(s.whatsapp),
@@ -81,7 +77,7 @@ export async function catalog():Promise<Product[]> {
  sb.from('store_products').select('*').eq('active',true).order('sort_order'),
  sb.from('store_variants').select('*').order('sort_order')]);
  if(p.error||v.error)throw new Error('Catalogue database is unavailable.');
- if(!p.data?.length)return products; // safe baseline before owner's first catalogue import
+ if(!p.data?.length)return []; // An empty or fully hidden catalogue must never resurrect products.
  return p.data.map(row=>normalizeProduct(row,v.data||[]));
 }
 export async function rateLimit(req:NextRequest){
@@ -90,11 +86,8 @@ export async function rateLimit(req:NextRequest){
  const ip=req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'';
  if(!ip)throw new Error('Unable to verify request origin.');
  const fingerprint=createHmac('sha256',secret).update(ip).digest('hex');
- const sb=db(); const since=new Date(Date.now()-3600_000).toISOString();
- const {count,error}=await sb.from('store_request_limits').select('*',{count:'exact',head:true}).eq('fingerprint',fingerprint).gte('created_at',since);
+ const {data,error}=await db().rpc('take_cardones_order_slot',{p_fingerprint:fingerprint});
  if(error)throw new Error('Request protection unavailable.');
- if((count||0)>=6)throw new Error('Too many order attempts. Please try later.');
- const ins=await sb.from('store_request_limits').insert({fingerprint});
- if(ins.error)throw new Error('Request protection unavailable.');
+ if(!data)throw new Error('Too many order attempts. Please try later.');
 }
 export function signature(s:string){return createHash('sha256').update(s).digest('hex');}

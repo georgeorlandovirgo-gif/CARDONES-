@@ -26,13 +26,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Remove server-only API endpoints from static preview build
-        run: rm -rf src/app/api
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build static preview with real product images and working client cart
-        run: npm run build
+        run: npm run build:preview
       - name: Upload static preview
         uses: actions/upload-pages-artifact@v3
         with:

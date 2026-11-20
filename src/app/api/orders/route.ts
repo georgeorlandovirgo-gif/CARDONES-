@@ -1,12 +1,13 @@
 import { NextRequest,NextResponse } from 'next/server';
 import {randomBytes} from 'node:crypto';
 import { z } from 'zod';
+import {parishes,jamaicanPhone} from '@/lib/commerce';
 import {catalog,db,rateLimit,settings,publicSettings} from '@/lib/server/store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const schema=z.object({
  name:z.string().trim().min(2).max(100), email:z.union([z.string().email().max(150),z.literal('')]).optional(),
- phone:z.string().trim().min(7).max(30), parish:z.string().trim().min(2).max(65),
+ phone:z.string().trim().max(30).refine(x=>Boolean(jamaicanPhone(x))), parish:z.enum(parishes),
  address:z.string().max(240).optional(), fulfillment:z.enum(['pickup','delivery']),
  notes:z.string().max(600).optional(), consent:z.literal(true),
  website:z.string().max(80).optional(),
@@ -17,12 +18,14 @@ function failure(message:string,status=400){return NextResponse.json({ok:false,m
 export async function POST(req:NextRequest){
  try{
   if(!req.headers.get('content-type')?.includes('multipart/form-data'))return failure('Send the checkout form as multipart data.',415);
+  if(Number(req.headers.get('content-length')||0)>5*1024*1024+50000)return failure('Request too large.',413);
   const form=await req.formData();
   const payload=form.get('order');if(typeof payload!=='string'||payload.length>18000)return failure('Invalid order request.');
   let obj:unknown;try{obj=JSON.parse(payload);}catch{return failure('Invalid order data.');}
   const parsed=schema.safeParse(obj);if(!parsed.success)return failure('Please check the required fields and selected payment method.');
   const x=parsed.data;if(x.website)return failure('Unable to process request.');
   const config=await settings();
+  if(x.fulfillment==='delivery'&&(!x.address?.trim()||!config.available_parishes.includes(x.parish)))return failure('Enter your delivery address and choose an available parish.');
   if(config.store_paused)return failure('Ordering is temporarily paused. Please contact Cardone’s.',503);
   if(x.fulfillment==='delivery'&&!config.delivery_enabled || x.fulfillment==='pickup'&&!config.pickup_enabled)return failure('Selected fulfilment method is unavailable.');
   if(x.paymentMethod==='bank_transfer'&&!(config.bank_enabled&&config.bank_account&&config.bank_name))return failure('Bank transfer is not currently available.');
@@ -39,7 +42,8 @@ export async function POST(req:NextRequest){
    const variant=product?.variants.find(v=>v.id===line.variantId);
    if(!product||!variant||!variant.available)return failure('A selected item is not currently available.');
    if(variant.priceJmd===null)unpriced=true;else subtotal+=variant.priceJmd*line.quantity;
-   const stock=await sb.from('store_variants').select('stock_count').eq('id',variant.id).maybeSingle();
+   const stock=await sb.from('store_variants').select('stock_count').eq('id',variant.id).single();
+   if(stock.error)return failure('Unable to verify stock. Please try again.',503);
    if(stock.data?.stock_count!==null&&stock.data?.stock_count!==undefined&&stock.data.stock_count<line.quantity)return failure(`Insufficient inventory for ${product.name}.`);
    lines.push({productId:product.id,name:product.name,variantId:variant.id,size:variant.label,quantity:line.quantity,unitPriceJmd:variant.priceJmd});
   }
@@ -69,9 +73,9 @@ export async function POST(req:NextRequest){
   const status=x.paymentMethod==='bank_transfer'?(receiptPath?'payment_submitted':'awaiting_payment'):
    x.paymentMethod==='cash'?'pending':'new_request';
   const res=await sb.from('store_orders').insert({
-   reference,customer_name:x.name,email:x.email||null,phone:x.phone,parish:x.parish,address:x.address||null,
+   reference,customer_name:x.name,email:x.email||null,phone:jamaicanPhone(x.phone),parish:x.parish,address:x.address||null,
    fulfillment:x.fulfillment,notes:x.notes||null,lines,priced_subtotal_jmd:subtotal,
-   has_unpriced:unpriced,status,payment_method:x.paymentMethod,receipt_path:receiptPath
+   has_unpriced:unpriced,status,delivery_fee_jmd:x.fulfillment==='delivery'?config.delivery_fee_jmd:0,payment_method:x.paymentMethod,receipt_path:receiptPath
   });
   if(res.error){if(receiptPath)await sb.storage.from('cardones-receipts').remove([receiptPath]);return failure('Unable to record the order. Please contact the store.',503);}
   // Optional email notification: order has already been persisted.
@@ -84,7 +88,7 @@ export async function POST(req:NextRequest){
   const message=lines.map(l=>`${l.quantity} x ${l.name} (${l.size})`).join('; ');
   const whatsappUrl=x.paymentMethod==='whatsapp'&&publicConfig.whatsapp?
    `https://wa.me/${publicConfig.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Cardone's order ${reference}\n${message}\nPriced subtotal J$${subtotal}\n${x.fulfillment} in ${x.parish}. Please confirm.`)}`:null;
-  return NextResponse.json({ok:true,reference,quoted:unpriced,pricedSubtotalJmd:subtotal,whatsappUrl,
+  return NextResponse.json({ok:true,reference,quoted:unpriced,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:x.fulfillment==='delivery'?config.delivery_fee_jmd:0,fulfillment:x.fulfillment,paymentMethod:x.paymentMethod,whatsappUrl,
    message:'Your request has been recorded. Payment remains unverified until Cardone’s confirms it.'},
    {status:201,headers:{'Cache-Control':'no-store'}});
  }catch(e){

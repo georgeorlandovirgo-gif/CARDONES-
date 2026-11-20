@@ -25,7 +25,7 @@ export type Product = {
 export const products: Product[] = [
   {
     id: "castor", slug: "castor-oil", name: "Castor Oil", subtitle: "The heritage favourite",
-    category: ["Hair", "Skin", "Multipurpose"], accent: "amber", image: "/images/castor-studio-bottle-cutout.webp", labelImage: "/images/castor-label.webp",
+    category: ["Hair", "Skin", "Multipurpose"], accent: "amber", image: "/images/castor-studio-bottle.webp", labelImage: "/images/castor-label.webp",
     description: "A timeless staple for everyday hair, scalp, and skin rituals, beautifully presented in our signature amber glass bottle.",
     benefits: ["Conditions dry hair", "Adds natural-looking shine", "Softens rough, dry skin", "Nourishes nails and cuticles"],
     howToUse: "Warm a few drops between palms, then work gently through the lengths of hair or massage onto dry skin. Use sparingly; castor oil has a naturally rich texture.",
@@ -35,7 +35,7 @@ export const products: Product[] = [
   },
   {
     id: "coconut", slug: "extra-virgin-coconut-oil", name: "Extra Virgin Coconut Oil", subtitle: "A ritual of softness",
-    category: ["Hair", "Skin", "Multipurpose"], accent: "coconut", image: "/images/coconut-bottle-cutout.webp", labelImage: "/images/coconut-label.webp",
+    category: ["Hair", "Skin", "Multipurpose"], accent: "coconut", image: "/images/coconut-bottle.webp", labelImage: "/images/coconut-label.webp",
     description: "A versatile, indulgent oil for a simple hair-and-body care routine, with a luxurious finish inspired by the tropics.",
     benefits: ["Pre-wash hair care", "Helps soften dry hair", "Moisturizes skin", "Ideal for body massage"],
     howToUse: "Massage a small amount onto skin or use as a pre-wash hair treatment. Coconut oil may naturally solidify in cooler temperatures; warm the sealed bottle gently in lukewarm water.",
@@ -45,7 +45,7 @@ export const products: Product[] = [
   },
   {
     id: "olive", slug: "extra-virgin-olive-oil", name: "Extra Virgin Olive Oil", subtitle: "Golden everyday care",
-    category: ["Hair", "Skin", "Multipurpose"], accent: "olive", image: "/images/olive-bottle-cutout.webp", labelImage: "/images/olive-label.webp",
+    category: ["Hair", "Skin", "Multipurpose"], accent: "olive", image: "/images/olive-bottle.webp", labelImage: "/images/olive-label.webp",
     description: "A classic botanical oil selected for simple rituals that leave hair feeling supple and skin comfortably moisturized.",
     benefits: ["Conditions dry hair and scalp", "Adds hair shine", "Softens and smooths", "Moisturizes dry skin"],
     howToUse: "Smooth a small amount through hair ends or massage onto dry skin. Apply a light amount first and adjust to your preference.",
@@ -58,7 +58,7 @@ export const products: Product[] = [
   },
   {
     id: "jojoba", slug: "golden-jojoba-oil", name: "Golden Jojoba Oil", subtitle: "Lightweight botanical luxury",
-    category: ["Hair", "Skin", "Multipurpose"], accent: "jojoba", image: "/images/jojoba-bottle-cutout.webp", labelImage: "/images/jojoba-label.webp",
+    category: ["Hair", "Skin", "Multipurpose"], accent: "jojoba", image: "/images/jojoba-bottle.webp", labelImage: "/images/jojoba-label.webp",
     description: "An elegant golden oil with a beautiful slip for face, body, and hair-care rituals.",
     benefits: ["Moisturizes dry skin", "Conditions hair and scalp", "Helps tame frizz", "Softens cuticles"],
     howToUse: "Gently smooth two or three drops over hair ends or massage a small amount onto clean skin. Start with a few drops.",
@@ -68,7 +68,7 @@ export const products: Product[] = [
   },
   {
     id: "palm", slug: "palm-oil", name: "Palm Oil", subtitle: "Rich and restorative feel",
-    category: ["Hair", "Skin"], accent: "palm", featured: true, image: "/images/palm-bottle-cutout.webp", labelImage: "/images/palm-label.webp",
+    category: ["Hair", "Skin"], accent: "palm", featured: true, image: "/images/palm-bottle.webp", labelImage: "/images/palm-label.webp",
     description: "A rich tropical oil traditionally used in body-care and hair-conditioning rituals.",
     benefits: ["Conditions dry hair", "Adds a soft-looking sheen", "Softens dry skin", "Ideal for body massage"],
     howToUse: "Warm a small quantity between the palms before applying to dry skin or hair lengths. Use carefully to avoid staining fabrics.",
@@ -78,7 +78,7 @@ export const products: Product[] = [
   },
   {
     id: "rosemary", slug: "rosemary-oil", name: "Rosemary Oil", subtitle: "A botanical scalp ritual",
-    category: ["Hair"], accent: "rosemary", image: "/images/rosemary-bottle-cutout.webp", labelImage: "/images/rosemary-label.webp", featured: true,
+    category: ["Hair"], accent: "rosemary", image: "/images/rosemary-bottle.webp", labelImage: "/images/rosemary-label.webp", featured: true,
     description: "Inspired by aromatic rosemary and the tradition of mindful scalp massage.",
     benefits: ["Scalp massage", "Pre-wash hair care", "Hair conditioning", "A refreshing botanical ritual"],
     howToUse: "Instructions will be published once we confirm whether this is diluted/infused rosemary oil or concentrated essential oil.",

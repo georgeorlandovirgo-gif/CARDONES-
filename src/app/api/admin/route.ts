@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db, owner, settings, toPhone } from '@/lib/server/store';
+import {createClient} from '@supabase/supabase-js';
+import {parishes} from '@/lib/commerce';
 import { products } from '@/lib/catalog';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -15,6 +17,7 @@ const merchantSchema=z.object({
  whatsapp_enabled:z.boolean().optional(),delivery_enabled:z.boolean().optional(),
  pickup_enabled:z.boolean().optional(),delivery_information:nullable,pickup_information:nullable,
  delivery_fee_jmd:z.number().int().min(0).nullable().optional(),store_paused:z.boolean().optional(),
+ available_parishes:z.array(z.enum(parishes)).min(1).max(14).optional(),
  policies:z.string().max(12000).nullable().optional()
 }).strict();
 const variant=z.object({id:z.string().regex(/^[a-z0-9-]{2,64}$/),label:z.string().trim().min(2).max(100),ml:z.number().int().min(1).max(10000),priceJmd:z.number().int().min(0).max(10000000).nullable(),available:z.boolean(),stockCount:z.number().int().min(0).nullable().optional()});
@@ -23,16 +26,12 @@ const product=z.object({
  name:z.string().trim().min(2).max(120),subtitle:z.string().max(180),description:z.string().max(3000),
  image:z.string().max(600).nullable().optional(),labelImage:z.string().max(600).nullable().optional(),
  benefits:z.array(z.string().max(150)).max(12), howToUse:z.string().max(2500),ingredientsNote:z.string().max(2500),
- caution:z.string().max(2000),category:z.array(z.enum(['Hair','Skin','Multipurpose'])).max(3),
+ caution:z.string().max(2000),category:z.array(z.enum(['Hair','Skin','Multipurpose'])).min(1).max(3),
  accent:z.enum(['amber','coconut','olive','palm','jojoba','rosemary','avocado']),
  featured:z.boolean(),active:z.boolean(),badge:z.string().max(50).nullable().optional(),
  sortOrder:z.number().int().min(0).max(10000),variants:z.array(variant).min(1).max(20)
 });
 const statuses=['new_request','pending','awaiting_payment','payment_submitted','payment_verified','processing','ready_for_pickup','dispatched','completed','cancelled','quoted','confirmed','fulfilled'] as const;
-async function audit(adminId:string,event:string,entityId:string,before:unknown,after:unknown){
- const {error}=await db().from('store_admin_audit').insert({admin_user_id:adminId,event,entity_id:entityId,before_data:before||null,after_data:after||null});
- if(error)throw Error('Audit log unavailable; change aborted.');
-}
 export async function GET(req:NextRequest){
  try{
   const admin=await owner(req);if(!admin)return err('Owner access required.',403);
@@ -64,35 +63,33 @@ export async function POST(req:NextRequest){
   const raw=await req.json();const action=raw?.action;const sb=db();
   if(action==='saveSettings'){
    const v=merchantSchema.safeParse(raw.settings);if(!v.success)return err('Please check the settings fields.');
-   const next={...v.data,whatsapp:v.data.whatsapp?toPhone(v.data.whatsapp):v.data.whatsapp,phone:v.data.phone?toPhone(v.data.phone):v.data.phone};
-   if(next.whatsapp&& !toPhone(next.whatsapp))return err('WhatsApp must be a valid Jamaican number with 876 or 658 area code.');
-   if(next.phone&& !toPhone(next.phone))return err('Enter a valid Jamaican phone number.');
-   const prev=await settings();
-   if(next.bank_enabled&&!(next.bank_account??prev.bank_account)||next.bank_enabled&&!(next.bank_name??prev.bank_name))return err('Bank name and account are required to enable bank transfer.');
-   if(next.whatsapp_enabled&&!(next.whatsapp??prev.whatsapp))return err('Save a WhatsApp number first.');
-   // Write audit before mutation to fail closed. Only record changed names, never account numbers in logs.
-   const sensitive=Object.keys(next).some(k=>k.startsWith('bank_'));
-   await audit(admin.id,sensitive?'bank_settings_changed':'store_settings_changed','main',
-    {fields:Object.keys(next)}, {fields:Object.keys(next),bankUpdated:sensitive});
-   const {error}=await sb.from('store_settings').update({...next,updated_at:new Date().toISOString()}).eq('id','main');
+   const next={...v.data};
+   for(const field of ['phone','whatsapp'] as const){
+    if(next[field]){const normalized=toPhone(next[field]!);if(!normalized)return err('Enter a valid Jamaican telephone number (876 or 658).');next[field]=normalized;}
+   }
+   for(const field of ['instagram','facebook'] as const){
+    if(next[field]){try{const url=new URL(next[field]!);if(url.protocol!=='https:')return err('Social links must use HTTPS.');}catch{return err('Enter a complete HTTPS social link.');}}
+   }
+   const prev=await settings();const merged={...prev,...next};
+   if(merged.bank_enabled&&!(merged.bank_account&&merged.bank_name&&merged.bank_holder))return err('Bank name, holder and account are required.');
+   if(merged.whatsapp_enabled&&!merged.whatsapp)return err('Save a WhatsApp number first.');
+   if(!merged.store_paused&&!(merged.bank_enabled||merged.cod_enabled||merged.whatsapp_enabled))return err('Enable a payment method before opening the store.');
+   if(!merged.store_paused&&!(merged.delivery_enabled||merged.pickup_enabled))return err('Enable delivery or pickup before opening.');
+   const changed=Object.keys(next).filter(k=>JSON.stringify(next[k as keyof typeof next])!==JSON.stringify(prev[k as keyof typeof prev]));
+   if(changed.some(k=>k.startsWith('bank_'))){
+    if(typeof raw.passwordConfirmation!=='string'||!raw.passwordConfirmation)return err('Confirm your owner password to change bank details.',403);
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if(!url||!key)return err('Reauthentication unavailable.',503);
+    const auth=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+    const check=await auth.auth.signInWithPassword({email:admin.email!,password:raw.passwordConfirmation});
+    if(check.error||check.data.user?.id!==admin.id)return err('Password confirmation failed. No changes saved.',403);
+   }
+   const {error}=await sb.rpc('save_cardones_merchant',{p_actor:admin.id,p_settings:next,p_fields:changed});
    return error?err('Settings could not be saved.',503):NextResponse.json({ok:true});
   }
   if(action==='seedCatalog'){
-   const {count,error:countError}=await sb.from('store_products').select('*',{count:'exact',head:true});
-   if(countError)return err('Products database is unavailable. Run the migration.',503);
-   if((count||0)>0)return err('Catalogue already initialized. Import is only allowed when empty.');
-   for(let i=0;i<products.length;i++){
-    const p=products[i];
-    const row={id:p.id,slug:p.slug,name:p.name,subtitle:p.subtitle,description:p.description,
-      image:p.image||null,label_image:p.labelImage||null,benefits:p.benefits,how_to_use:p.howToUse,
-      ingredients_note:p.ingredientsNote,caution:p.caution,categories:p.category,accent:p.accent,
-      featured:!!p.featured,badge:p.badge||null,active:true,sort_order:i};
-    const {error:e}=await sb.from('store_products').insert(row);if(e)return err('Product import was interrupted; review the database.',503);
-    const {error:ve}=await sb.from('store_variants').insert(p.variants.map((v,j)=>({id:v.id,product_id:p.id,label:v.label,ml:v.ml,price_jmd:v.priceJmd,available:v.available,sort_order:j})));
-    if(ve)return err('Variant import was interrupted.',503);
-   }
-   await audit(admin.id,'catalogue_seeded','all',null,{count:products.length});
-   return NextResponse.json({ok:true});
+   const {error}=await sb.rpc('seed_cardones_catalogue',{p_actor:admin.id,p_products:products.map((p,i)=>({...p,featured:!!p.featured,active:true,sortOrder:i}))});
+   return error?err('Import failed. Check migrations and whether the catalogue is already initialized.',409):NextResponse.json({ok:true});
   }
   if(action==='saveProduct'){
    const v=product.safeParse(raw.product);if(!v.success)return err('Invalid product data. Check sizes, prices and required fields.');
@@ -100,19 +97,8 @@ export async function POST(req:NextRequest){
    const validImg=(path:string|null|undefined)=>!path||path.startsWith('/images/')||/^https:\/\/[a-zA-Z0-9.-]+\/[^\s]*$/.test(path);
    if(!validImg(p.image)||!validImg(p.labelImage))return err('Upload an image or use a secure approved URL.');
    const ids=new Set(p.variants.map(x=>x.id));if(ids.size!==p.variants.length)return err('Duplicate size IDs.');
-   const {data:before}=await sb.from('store_products').select('id,name,slug').eq('id',p.id).maybeSingle();
-   await audit(admin.id,'product_updated',p.id,before,{id:p.id,name:p.name,variantCount:p.variants.length});
-   const row={id:p.id,slug:p.slug,name:p.name,subtitle:p.subtitle,description:p.description,image:p.image||null,
-    label_image:p.labelImage||null,benefits:p.benefits,how_to_use:p.howToUse,ingredients_note:p.ingredientsNote,
-    caution:p.caution,categories:p.category,accent:p.accent,featured:p.featured,active:p.active,
-    badge:p.badge||null,sort_order:p.sortOrder,updated_at:new Date().toISOString()};
-   const up=await sb.from('store_products').upsert(row,{onConflict:'id'});if(up.error)return err('Product save failed.',503);
-   const old=await sb.from('store_variants').select('id').eq('product_id',p.id);if(old.error)return err('Variant lookup failed.',503);
-   for(const v of p.variants){const r=await sb.from('store_variants').upsert({id:v.id,product_id:p.id,label:v.label,ml:v.ml,
-    price_jmd:v.priceJmd,available:v.available,stock_count:v.stockCount??null,sort_order:p.variants.indexOf(v)},{onConflict:'id'});if(r.error)return err('Variant save failed.',503);}
-   const removed=(old.data||[]).map(x=>x.id).filter(id=>!ids.has(id));
-   if(removed.length){const d=await sb.from('store_variants').delete().in('id',removed).eq('product_id',p.id);if(d.error)return err('Variant removal failed.',503);}
-   return NextResponse.json({ok:true});
+   const {error}=await sb.rpc('save_cardones_catalogue_product',{p_actor:admin.id,p_product:p});
+   return error?err('Product save failed. Check unique page and size IDs; no changes saved.',409):NextResponse.json({ok:true});
   }
   if(action==='updateOrder'){
    // Validate only relevant keys (including action) separately.
@@ -121,10 +107,7 @@ export async function POST(req:NextRequest){
    const {data:before,error:ex}=await sb.from('store_orders').select('status,payment_method').eq('id',id).single();
    if(ex||!before)return err('Order not found.',404);
    if(status==='payment_verified' && before.payment_method!=='bank_transfer')return err('Only bank transfers can be manually marked verified.');
-   await audit(admin.id,status==='payment_verified'?'manual_payment_verified':'order_status_changed',id,{status:before.status},{status});
-   const update:Record<string,unknown>={status,updated_at:new Date().toISOString()};
-   if(status==='payment_verified')update.payment_verified_at=new Date().toISOString();
-   const result=await sb.from('store_orders').update(update).eq('id',id);
+   const result=await sb.rpc('update_cardones_order',{p_actor:admin.id,p_id:id,p_status:status});
    return result.error?err('Order status change failed.',503):NextResponse.json({ok:true});
   }
   return err('Unknown admin operation.');

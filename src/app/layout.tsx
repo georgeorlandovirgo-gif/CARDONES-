@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { CatalogProvider } from "@/components/CatalogProvider";
 import { MerchantProvider } from "@/components/MerchantProvider";
 import "./globals.css";
+import {RevealMotion} from "@/components/RevealMotion";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://cardones.example"),
@@ -14,5 +15,5 @@ export const metadata: Metadata = {
   robots: process.env.NEXT_PUBLIC_STORE_DEMO === "1" ? { index:false, follow:false } : { index:true, follow:true },
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
-  return <html lang="en"><body>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div className="preview-ribbon">CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<CatalogProvider><MerchantProvider><StoreProvider><Header/><main id="main-content">{children}</main><Footer/><CartDrawer/></StoreProvider></MerchantProvider></CatalogProvider></body></html>;
+  return <html lang="en"><body><a className="skip-link" href="#main-content">Skip to content</a>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div className="preview-ribbon">CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<CatalogProvider><MerchantProvider><StoreProvider><Header/><RevealMotion/><main id="main-content">{children}</main><Footer/><CartDrawer/></StoreProvider></MerchantProvider></CatalogProvider></body></html>;
 }
