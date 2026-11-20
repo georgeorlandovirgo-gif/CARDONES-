@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, Droplets, Heart, Leaf, PackageCheck, Sparkles, Sun, Sprout, MapPin } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { featuredProducts } from "@/lib/catalog";
+import { FeaturedCollection } from "@/components/FeaturedCollection";
 import { assetUrl } from "@/lib/asset-url";
 
 export default function HomePage(){ return <>
@@ -32,7 +32,7 @@ export default function HomePage(){ return <>
 
   <section className="section collection-section editorial-collection" id="collection"><div className="container">
     <div className="collection-intro"><span className="eyebrow luxe-eyebrow">DISCOVER THE COLLECTION / 01</span><div className="collection-intro-grid"><h2>Nature’s details.<br/><em>Beautifully bottled.</em></h2><div><p>From richly conditioning castor oil to lightweight golden jojoba, discover a collection designed around your everyday hair and skin rituals.</p><Link href="/shop" className="underlined-link">VIEW ALL PRODUCTS <ArrowUpRight size={17}/></Link></div></div></div>
-    <div className="product-grid luxe-product-grid">{featuredProducts.map((p,i)=><ProductCard key={p.id} product={p} priority={i<3}/>)}</div>
+    <FeaturedCollection/>
   </div></section>
 
   <section className="ritual-note"><div className="container ritual-note-inner"><span className="ritual-emblem">✦</span><div><span className="eyebrow">THE ART OF THE EVERYDAY</span><h2>A little care becomes<br/><em>a beautiful ritual.</em></h2></div><p>There is beauty in familiar things. The warmth of golden oil, the simplicity of a daily routine, and products chosen with you in mind.</p></div></section>
@@ -41,6 +41,8 @@ export default function HomePage(){ return <>
      <div className="ritual-edit-media"><div className="ritual-edit-halo"/><Image src={assetUrl("/images/olive-bottle-cutout.webp")} alt="Cardone’s Extra Virgin Olive Oil presented in its gold-labelled amber glass bottle" fill sizes="(max-width: 800px) 84vw, 520px"/><span className="ritual-edit-caption">A TOUCH OF GOLD, AN EVERYDAY MOMENT</span></div>
      <div className="ritual-edit-text"><span className="eyebrow">BOTANICAL RITUALS / 02</span><span className="ornamental-line"/><h2>Care, in its<br/><em>most considered</em><br/>form.</h2><p>Our collection brings together familiar, versatile botanical oils in a distinctive gold-labelled presentation—because the little details should feel special, too.</p><div className="ritual-list"><span><Droplets size={18}/> HAIR & SCALP CARE</span><span><Sprout size={18}/> SKIN & BODY RITUALS</span><span><Sun size={18}/> EVERYDAY SELF-CARE</span></div><Link href="/shop" className="button button-outline-dark">FIND YOUR OIL <ArrowUpRight size={18}/></Link></div>
   </div></section>
+
+  <section className="editorial-lifestyle"><div className="editorial-lifestyle-photo" style={{backgroundImage: "url(" + assetUrl("/images/cardones-lifestyle-hair.webp") + ")"}} role="img" aria-label="Illustrative hair-care moment with natural curls and a botanical oil bottle"/><div className="lifestyle-story-copy"><span className="eyebrow">AN EVERYDAY RITUAL / 03</span><span className="ornamental-line"/><h2>Time for your hair.<br/><em>A moment for you.</em></h2><p>From gentle scalp massage to conditioning dry lengths, the Cardone’s collection belongs in the small daily routines that make you feel cared for.</p><Link href="/shop" className="button button-outline-dark">EXPLORE HAIR CARE <ArrowUpRight size={17}/></Link><small>Imagery is an artistic representation, not a verified product treatment result.</small></div></section>
 
   <section className="founders-band"><div className="container founders-band-inner"><div className="founders-mark">C<span>✧</span></div><div><span className="eyebrow">MADE WITH YOU IN MIND</span><h2>A family business.<br/><em>A signature of care.</em></h2><p>Thank you for choosing Cardone’s Products. Our Jamaican roots and thoughtful presentation are at the heart of this growing botanical collection.</p><Link href="/about" className="underlined-link founders-link">OUR STORY <ArrowUpRight size={17}/></Link></div></div></section>
 

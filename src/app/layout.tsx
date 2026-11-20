@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StoreProvider } from "@/components/StoreProvider";
 import { CartDrawer } from "@/components/CartDrawer";
+import { RevealMotion } from "@/components/RevealMotion";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,5 +13,5 @@ export const metadata: Metadata = {
   robots: process.env.NEXT_PUBLIC_STORE_DEMO === "1" ? { index: false, follow: false } : { index: true, follow: true },
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
-  return <html lang="en"><body><StoreProvider>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div style={{background:"#23422c",color:"#fff",textAlign:"center",padding:"10px 14px",fontSize:"12px",letterSpacing:"0.09em",fontWeight:600}}>CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<Header/><main id="main-content">{children}</main><Footer/><CartDrawer/></StoreProvider></body></html>;
+  return <html lang="en"><body><StoreProvider>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div style={{background:"#23422c",color:"#fff",textAlign:"center",padding:"10px 14px",fontSize:"12px",letterSpacing:"0.09em",fontWeight:600}}>CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<Header/><main id="main-content">{children}</main><Footer/><CartDrawer/><RevealMotion/></StoreProvider></body></html>;
 }

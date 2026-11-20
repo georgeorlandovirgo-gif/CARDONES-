@@ -1,75 +1,75 @@
-# Cardone’s Products — luxury botanical oils storefront
+# CARDONE’S PRODUCTS — Jamaican botanical oils
 
-## Editorial storefront redesign (November 2026)
+Premium, mobile-first storefront with the original six luxury oil labels, glass-bottle mockups, new editorial photography and an optional Avocado Oil coming-soon entry. The only confirmed price is **J$1,800 for 5 fl oz / 148 mL Castor Oil**. All other prices remain unconfirmed.
 
-The homepage now features a professionally art-directed Cardone’s campaign hero using the actual Cardone’s castor-oil label on an amber glass bottle, refined serif brand typography, warm travertine and botanical imagery, a curated six-product gallery, and more spacious, premium shopping cards. Each product card uses a transparent-background bottle cutout; original label images are retained as an alternate view on product pages.
-
-The **GitHub Pages link is a static demonstration only**, with a persistent cart and safe simulated checkout but no order collection or charges. The production Next.js API and Supabase checkout remain in the codebase for deployment to a suitable commercial host.
-
-
-
-A mobile-responsive, Jamaica-first e-commerce storefront built with Next.js, TypeScript, CSS, Supabase order requests and real Cardone’s label artwork. **The storefront is ready for review, but payments are not enabled.**
-
-## The catalogue
-
-- Castor Oil — 5 fl oz / 148 mL, **J$1,800** (confirmed).
-- Extra Virgin Coconut Oil — 5 fl oz / 148 mL, price not supplied.
-- Extra Virgin Olive Oil — 2 fl oz / 60 mL and 5 fl oz / 148 mL, prices not supplied.
-- Palm Oil — 5 fl oz / 148 mL, pending ingredient identification and price.
-- Golden Jojoba Oil — 2 fl oz / 60 mL, price not supplied.
-- Rosemary Oil — 2 fl oz / 60 mL, pending clarification whether essential oil or diluted infusion.
-- Avocado Oil — an optional coming-soon item, listed without final label imagery.
-
-**Every existing label artwork appears in the catalogue, regardless of price.** No invented prices or fabricated reviews. Prelaunch products cannot be submitted to checkout until you mark their variants `available: true` in `src/lib/catalog.ts`.
+**Two distinct modes:**
+- **GitHub Pages preview**: static site, responsive shopping bag, full collection, product pages, search, a simulated checkout and clearly disabled private management. NO real orders, customer details, receipt uploads or payments are accepted.
+- **Production host with Next.js server and Supabase**: real order requests, configured bank transfer, cash on delivery, WhatsApp ordering, protected receipt storage and a genuine editable owner dashboard. This production service is NOT activated.
 
 ## Run locally
 
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-```
+Requires Node 20+:
 
-Open http://localhost:3000. Check `npm run typecheck` and `npm run build` before launch. A GitHub Actions workflow also validates type-checking and builds on pushes to `main`.
+    npm ci
+    cp .env.example .env.local
+    npm run dev
+    npm run typecheck
+    npm run build
 
-## Enable real order requests
+Open http://localhost:3000. With no Supabase configuration, this is a preview, not a live store.
 
-1. Create a Supabase project at https://supabase.com.
-2. Run `supabase/migrations/001_orders.sql` in **SQL Editor**.
-3. Put your Supabase project URL and **service role key** in your hosting environment as `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. **Never** put the service key in client-side code, commits or `NEXT_PUBLIC_` variables.
-4. Deploy your repository to Vercel (Next.js preset). Add the same environment variables there.
-5. Make a test order. Check `public.store_orders` in Supabase Table Editor. Confirm that the customer sees a reference number and the merchant can review the order.
-6. Optionally connect Resend email notifications by setting `RESEND_API_KEY`, `ORDER_NOTIFICATION_EMAIL` and `ORDER_FROM_EMAIL` with a verified sending domain. Confirm emails arrive in tests.
-7. Replace placeholder contact information and publish shipping/returns contact details before accepting paid orders.
-8. Before public launch, add an anti-spam/rate-limiting solution to the order submission API and test notification failures. A saved order can succeed without an email notification.
+## Owner dashboard: /admin
 
-The `/api/orders` endpoint validates customer input and re-checks products, quantities, availability and prices **on the server**. It stores orders in Supabase. A disabled backend returns a clear error and does not pretend the order succeeded. Delivery and final pricing must be confirmed manually before payment. Orders are not charged online.
+The authenticated owner can change prices, sizes, product information, availability, photos, featured products, product display order, contact details, WhatsApp number, social links, delivery instructions, policies, COD and bank-transfer status. The owner can add products and review real order requests, private transfer receipts and genuine recorded sales. Sensitive changes are audited. Bank-detail changes require fresh password confirmation; the audit log never includes the account number itself. Phone-friendly administration does not require editing source code.
 
-## Change prices later
+There are NO preconfigured owner emails, credentials or bank details. GitHub Pages serves an informative disabled manager, not a working admin service.
 
-Edit `src/lib/catalog.ts`. Each variant has `priceJmd: number | null` and `available: boolean`.
+## Activate the production store safely (do these steps only when ready)
 
-- `priceJmd: null`: display "Price on request"; shoppers may add it to their quotation bag if `available: true`.
-- `priceJmd: 2500`: display "J$2,500" and calculate this amount in the bag and on the server.
-- `available: false`: visible as "Coming soon", but not orderable.
+1. Select a commercial Next.js host supporting Node-based API routes. GitHub Pages remains only a non-transactional design preview.
+2. Create a Supabase project. In Supabase SQL Editor run **supabase/migrations/001_orders.sql**, followed by **supabase/migrations/002_management.sql**.
+3. In Supabase **Authentication → Users**, create your own private login, verify its email and copy the resulting **Auth UUID**. Do not use your email address as the UUID.
+4. In Supabase SQL Editor, grant this user access using the following sample. **Replace the all-zero UUID with your actual Auth UUID before execution**:
 
-You do not need to rebuild the design when changing prices; redeploy after saving catalog changes. An admin dashboard and instant price changes without redeploy can be added in a later phase.
+       INSERT INTO public.store_admins (user_id)
+       VALUES ('00000000-0000-0000-0000-000000000000')
+       ON CONFLICT (user_id) DO UPDATE SET active=true;
 
-## Product artwork
+5. On the hosting provider, configure NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SITE_URL. Add a long random ORDER_RATE_SALT. **Never put the secret service-role key in public client code, GitHub commits or a NEXT_PUBLIC variable.**
+6. Strongly recommended: configure Cloudflare Turnstile site key and secret for anti-spam protection, test both, then set NEXT_PUBLIC_TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY. When the secret exists, the server rejects orders lacking a valid verification token.
+7. Deploy your main branch to the suitable commercial host. Check /api/health, /api/storefront and /admin. Log in as the approved owner.
+8. Complete the verified contact details, bank account and WhatsApp number if applicable. Review and update delivery, returns and privacy details. Complete prices and stock. Confirm rosemary essential-vs-infused oil, palm-vs-palm-kernel oil, extra-virgin designations and cosmetic-use claims before sales.
+9. Test a real order on the configured backend. Ensure it appears in /admin. Upload a test receipt to the PRIVATE store, inspect the time-limited owner-only viewing link, and check that payment is only marked Verified when the owner actually confirms cleared funds.
+10. Enable the Accept real order requests setting only when all tests and merchant approvals are satisfactory.
 
-The bottle mockup photographs in `public/images/*-bottle.webp` place the actual Cardone’s label designs onto illustrative amber glass bottles. Each product detail page has a **Glass bottle / Original label artwork** toggle; actual bottle photography may replace the mockups later. The files in `public/images/` use the actual Cardone’s designs produced for Castor, Extra Virgin Coconut, Extra Virgin Olive, Palm, Golden Jojoba and Rosemary Oil, plus the existing castor bottle mockup. **These bottle mockups are visual simulations, not photographs of production-filled inventory or certified regulatory-label artwork.** For physical printing, verify bottle dimensions, product identity (especially palm fruit versus palm kernel and rosemary essential versus infused), ingredients, contact details and applicable Jamaican rules. Do not publish unsubstantiated therapeutic claims. Do not imply independent purity certifications or customer reviews.
+## Payments and security
 
-## Design and shopping features
+- No credit-card gateway is connected. Do not announce card processing.
+- Bank details are shown only when the owner explicitly enables bank transfer. Changing bank details requires a password check and audited write.
+- Cash-on-delivery/pickup and WhatsApp actions appear only if enabled and configured.
+- The store validates price, quantity, variant availability and payment method on the server; items without a confirmed price use quotation processing.
+- Receipts may be JPG, PNG, WebP or PDF (3MB maximum); they are private, never published as direct public file links. Uploading a receipt sets Payment Submitted, NOT Payment Verified.
+- The owner must independently verify payments and confirm delivery. Public users cannot read order records or modify settings.
+- A database-backed rate limit and honeypot apply to real order requests. Add Turnstile, a verified domain, HTTPS, a privacy-retention policy and monitoring for launch.
+- The database stores orders; email notices are optional and require RESEND_API_KEY, ORDER_NOTIFICATION_EMAIL and ORDER_FROM_EMAIL with a verified sender.
+- Editorial and bottle imagery are design illustrations, not verified inventory photos, medical claims, purity certificates or real customer endorsements.
 
-Responsive pages, product variants, product explanations, a persistent cart, catalogue search, hair/skin filters, tasteful luxury imagery, FAQs and policies, quote requests, server-validated orders and optional merchant email. Shipping is Jamaica-only at launch, quoted separately. There is **no online credit card charging**, no fabricated reviews, and no unsupported fulfillment promises.
+## GitHub Pages preview
 
-## Suggested launch checklist
+The GitHub workflow **.github/workflows/pages-demo.yml** uses static-export mode and removes server-only APIs in the CI workspace only. All production code remains in the repository. GitHub Pages checkout is simulated; the owner manager and personal data storage are intentionally disabled.
 
-- Decide whether to use a true payment gateway for JMD (merchant account and provider integration required).
-- Confirm cash-on-delivery/pickup and delivery policies, contact methods, return policy and prices.
-- Verify product ingredients, expiry/batch labeling and cosmetic claims.
-- Add actual bottle photography and test checkout on phones.
-- Configure a custom domain and professional email.
-- Keep the Supabase key private and enable backup/notification monitoring.
+https://georgeorlandovirgo-gif.github.io/CARDONES-/
 
-_Designed for Cardone’s Products, packaged in St. Elizabeth, Jamaica._
+## Architecture
+
+- src/lib/catalog.ts: seven accurate product entries, offline/demo fallback
+- src/components/StoreProvider.tsx: persistent cart and live store settings
+- src/app/checkout: preview and gated production order submission
+- src/app/admin: responsive owner dashboard, with verified server-side authorisation
+- src/app/api: protected admin, public catalogue, real orders and private receipts
+- supabase/migrations: row-level security, store data, order throttling and atomic change auditing
+- public/images: Cardone’s authentic label designs, staged glass renders, campaign and lifestyle photographs
+
+Customers see confirmed prices in JMD; unpriced and coming-soon oils remain visible. Future product changes appear on production without changing GitHub code.
+
+_Built for Cardone’s Products, packaged in St. Elizabeth, Jamaica._
