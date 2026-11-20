@@ -56,10 +56,10 @@ export default function AdminPage(){
   const result=await res.json();if(!res.ok)throw Error(result.error||'Store request failed.');return result;
  }
  async function load(which:DashboardTab){setMessage('');setBusy(true);setTab(which);
-  try{const r=await request(which);if(which==='settings')setSettings({...blankSettings,...r.settings});if(which==='products'){setProducts(r.products);setVariants(r.variants);}if(which==='orders')setOrders(r.orders);if(which==='audit')setAudits(r.audit);if(which==='overview')setSummary(r);}catch(e){setMessage(e instanceof Error?e.message:'Unable to load.');}finally{setBusy(false);}
+  try{const r=await request(which);if(which==='settings')setSettings(Object.fromEntries(Object.keys(blankSettings).map(key=>[key,r.settings?.[key]??blankSettings[key]])));if(which==='products'){setProducts(r.products);setVariants(r.variants);}if(which==='orders')setOrders(r.orders);if(which==='audit')setAudits(r.audit);if(which==='overview')setSummary(r);}catch(e){setMessage(e instanceof Error?e.message:'Unable to load.');}finally{setBusy(false);}
  }
  useEffect(()=>{if(jwt)void load('overview');},[jwt]);
- async function save(action:RecordData){setBusy(true);setMessage('');try{await request(tab,action);setMessage('Saved successfully.');await load(tab);}catch(e){setMessage(e instanceof Error?e.message:'Save failed.');}finally{setBusy(false);}}
+ async function save(action:RecordData){setBusy(true);setMessage('');try{await request(tab,action);await load(tab);setMessage('Saved successfully.');}catch(e){setMessage(e instanceof Error?e.message:'Save failed.');}finally{setBusy(false);}}
  async function upload(file:File){if(!sb)throw Error('Sign in first.');const {data:{session}}=await sb.auth.getSession();if(!session)throw Error('Session expired.');
   const body=new FormData();body.set('image',file);const res=await fetch('/api/admin/upload',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},body});const data=await res.json();if(!res.ok)throw Error(data.error);return data.url as string;}
  async function viewReceipt(orderId:string){if(!sb)return;const {data:{session}}=await sb.auth.getSession();if(!session)return;try{const r=await fetch(`/api/admin/receipt?orderId=${encodeURIComponent(orderId)}`,{headers:{Authorization:`Bearer ${session.access_token}`},cache:'no-store'});const x=await r.json();if(!r.ok)throw Error(x.error);window.open(x.url,'_blank','noopener,noreferrer');}catch(e){setMessage(e instanceof Error?e.message:'Receipt unavailable.');}}

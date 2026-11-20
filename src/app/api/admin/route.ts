@@ -64,7 +64,7 @@ export async function POST(req:NextRequest){
   const raw=await req.json();const action=raw?.action;const sb=db();
   if(action==='saveSettings'){
    const v=merchantSchema.safeParse(raw.settings);if(!v.success)return err('Please check the settings fields.');
-   const next=v.data;
+   const next={...v.data,whatsapp:v.data.whatsapp?toPhone(v.data.whatsapp):v.data.whatsapp,phone:v.data.phone?toPhone(v.data.phone):v.data.phone};
    if(next.whatsapp&& !toPhone(next.whatsapp))return err('WhatsApp must be a valid Jamaican number with 876 or 658 area code.');
    if(next.phone&& !toPhone(next.phone))return err('Enter a valid Jamaican phone number.');
    const prev=await settings();
