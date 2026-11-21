@@ -58,3 +58,6 @@ Contact links and WhatsApp checkout read the same merchant settings. Unpriced it
 - No online card processing or automated payment settlement is implemented or claimed.
 
 See [verification report](docs/VERIFICATION.md) for actual test results and deployment limits.
+
+## Customer testimonials
+Run `supabase/migrations/004_testimonials.sql` after migrations 001–003. The new `/testimonials` page accepts written stories and optional photos; the owner dashboard has a Testimonials review tab. See [testimonials setup](docs/testimonials.md). GitHub Pages remains a design preview with submissions disabled.

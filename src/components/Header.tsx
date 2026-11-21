@@ -10,6 +10,7 @@ const links = [
   { href: "/shop", text: "The collection" },
   { href: "/about", text: "Our story" },
   { href: "/faq", text: "Oil rituals" },
+  { href: "/testimonials", text: "Testimonials" },
   { href: "/contact", text: "Contact" },
 ];
 export function Header() {

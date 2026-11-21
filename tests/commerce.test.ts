@@ -19,7 +19,7 @@ test('Cart rejects corrupt quantities and preserves unpriced/coming-soon catalog
 test('PostgreSQL migrations, atomic saves, rollback, throttling and access grants',async()=>{
  const db=new PGlite();
  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA storage; CREATE TABLE storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);');
- for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql']){
+ for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql']){
   const sql=(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8')).replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;','');
   await db.exec(sql);
  }
@@ -37,5 +37,14 @@ test('PostgreSQL migrations, atomic saves, rollback, throttling and access grant
  for(let i=0;i<6;i++)assert.equal((await db.query<{ok:boolean}>('SELECT take_cardones_order_slot($1) ok',['a'.repeat(64)])).rows[0].ok,true);
  assert.equal((await db.query<{ok:boolean}>('SELECT take_cardones_order_slot($1) ok',['a'.repeat(64)])).rows[0].ok,false);
  await db.exec('SET ROLE anon');await assert.rejects(db.query('SELECT * FROM store_settings'));await assert.rejects(db.query('SELECT save_cardones_merchant($1,$2,$3)',[actor,'{}',[]]));await db.exec('RESET ROLE');
+ const inserted=await db.query<{id:string;status:string}>("INSERT INTO store_testimonials(display_name,email,product_id,product_name,title,story) VALUES('Fixture','private@example.test','castor','Castor Oil','My routine','This is a test story with enough characters.') RETURNING id,status");
+ const id=inserted.rows[0].id;assert.equal(inserted.rows[0].status,'pending');
+ await db.query('SELECT moderate_cardones_testimonial($1,$2,$3)',[actor,id,'approved']);
+ assert.equal((await db.query<{status:string}>('SELECT status FROM store_testimonials WHERE id=$1',[id])).rows[0].status,'approved');
+ await assert.rejects(db.query('SELECT moderate_cardones_testimonial($1,$2,$3)',[actor,id,'bad']));
+ await db.query('SELECT moderate_cardones_testimonial($1,$2,$3)',[actor,id,'hidden']);
+ assert.equal((await db.query<{published_at:unknown}>('SELECT published_at FROM store_testimonials WHERE id=$1',[id])).rows[0].published_at,null);
+ assert.equal((await db.query<{public:boolean}>("SELECT public FROM storage.buckets WHERE id='cardones-testimonials'")).rows[0].public,false);
+ await db.exec('SET ROLE anon');await assert.rejects(db.query('SELECT * FROM store_testimonials'));await assert.rejects(db.query('SELECT moderate_cardones_testimonial($1,$2,$3)',[actor,id,'approved']));await db.exec('RESET ROLE');
  await db.close();
 });

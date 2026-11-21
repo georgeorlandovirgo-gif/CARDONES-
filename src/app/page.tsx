@@ -1,3 +1,4 @@
+import {TestimonialPopup} from '@/components/TestimonialPopup';
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -6,7 +7,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { FeaturedCollection } from "@/components/FeaturedCollection";
 import { assetUrl } from "@/lib/asset-url";
 
-export default function HomePage(){ return <>
+export default function HomePage(){ return <><TestimonialPopup/>
   <section className="hero hero-campaign" style={{"--campaign-image": `url(${assetUrl("/images/cardones-collection-campaign.webp")})`, "--campaign-mobile-image": `url(${assetUrl("/images/cardones-mobile-campaign.webp")})`} as CSSProperties}>
     <div className="hero-campaign-picture" aria-hidden="true" />
     <div className="container campaign-layout">
@@ -51,5 +52,5 @@ export default function HomePage(){ return <>
   <section className="founders-band"><div className="container founders-band-inner"><div className="founders-mark">C<span>✧</span></div><div><span className="eyebrow">MADE WITH YOU IN MIND</span><h2>A family business.<br/><em>A signature of care.</em></h2><p>Thank you for choosing Cardone’s Products. Our Jamaican roots and thoughtful presentation are at the heart of this growing botanical collection.</p><Link href="/about" className="underlined-link founders-link">OUR STORY <ArrowUpRight size={17}/></Link></div></div></section>
 
   <section className="section closing-collection"><div className="container closing-inner"><div><span className="eyebrow">YOUR RITUAL STARTS HERE</span><h2>Find something<br/><em>beautiful for you.</em></h2><p>Explore the entire Cardone’s oil collection, including new arrivals and products coming soon.</p></div><Link href="/shop" className="button button-champagne">SHOP THE COLLECTION <ArrowUpRight size={17}/></Link></div></section>
-  </>;
+  <section className="section story-invite"><div className="container"><span className="eyebrow">THE CARDONE’S COMMUNITY</span><h2>Your ritual. Your story.</h2><p>Share your experience, add your photos, and discover the routines of our community.</p><Link href="/testimonials" className="button button-dark">Explore testimonials <ArrowRight size={17}/></Link></div></section></>;
 }

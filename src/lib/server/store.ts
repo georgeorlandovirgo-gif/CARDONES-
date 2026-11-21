@@ -80,12 +80,12 @@ export async function catalog():Promise<Product[]> {
  if(!p.data?.length)return []; // An empty or fully hidden catalogue must never resurrect products.
  return p.data.map(row=>normalizeProduct(row,v.data||[]));
 }
-export async function rateLimit(req:NextRequest){
+export async function rateLimit(req:NextRequest,scope="orders"){
  const secret=process.env.RATE_LIMIT_SECRET;
  if(!secret)throw new Error('RATE_LIMIT_SECRET must be configured before accepting orders.');
  const ip=req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'';
  if(!ip)throw new Error('Unable to verify request origin.');
- const fingerprint=createHmac('sha256',secret).update(ip).digest('hex');
+ const fingerprint=createHmac('sha256',secret).update(scope+':'+ip).digest('hex');
  const {data,error}=await db().rpc('take_cardones_order_slot',{p_fingerprint:fingerprint});
  if(error)throw new Error('Request protection unavailable.');
  if(!data)throw new Error('Too many order attempts. Please try later.');

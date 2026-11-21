@@ -2,11 +2,12 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 import {ArrowRight,CheckCircle2,LockKeyhole,LogOut,Plus,Save,UploadCloud} from 'lucide-react';
+import {TestimonialsModeration} from '@/components/TestimonialsModeration';
 import {parishes} from '@/lib/commerce';
 import {products as sampleProducts,type Product} from '@/lib/catalog';
 
 type RecordData=Record<string,unknown>;
-type DashboardTab='overview'|'settings'|'products'|'orders'|'audit';
+type DashboardTab='overview'|'settings'|'products'|'orders'|'audit'|'testimonials';
 const blankSettings:RecordData={available_parishes:[...parishes],phone:'',whatsapp:'',email:'',instagram:'',facebook:'',location:'St. Elizabeth, Jamaica',contact_hours:'',
  bank_enabled:false,bank_name:'',bank_holder:'',bank_account:'',bank_branch:'',bank_type:'',bank_instructions:'',
  cod_enabled:false,whatsapp_enabled:false,delivery_enabled:true,pickup_enabled:true,delivery_information:'',pickup_information:'',
@@ -57,7 +58,7 @@ export default function AdminPage(){
   const res=await fetch(`/api/admin${body?'':`?section=${section}`}`,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${session.access_token}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
   const result=await res.json();if(!res.ok)throw Error(result.error||'Store request failed.');return result;
  }
- async function load(which:DashboardTab){setMessage('');setBusy(true);setTab(which);
+ async function load(which:DashboardTab){setMessage('');setBusy(true);setTab(which);if(which==='testimonials'){setBusy(false);return;}
   try{const r=await request(which);if(which==='settings')setSettings(Object.fromEntries(Object.keys(blankSettings).map(key=>[key,r.settings?.[key]??blankSettings[key]])));if(which==='products'){setProducts(r.products);setVariants(r.variants);}if(which==='orders')setOrders(r.orders);if(which==='audit')setAudits(r.audit);if(which==='overview')setSummary(r);}catch(e){setMessage(e instanceof Error?e.message:'Unable to load.');}finally{setBusy(false);}
  }
  useEffect(()=>{if(jwt)void load('overview');},[jwt]);
@@ -76,7 +77,7 @@ export default function AdminPage(){
  featured:v.featured,active:v.active,badge:v.badge,sortOrder:v.sort_order,
  variants:variants.filter(x=>x.product_id===v.id).map(x=>({id:x.id,label:x.label,ml:x.ml,priceJmd:x.price_jmd,available:x.available,stockCount:x.stock_count}))});
  return <section className="admin-shell"><div className="container"><div className="admin-top"><div><span className="eyebrow">CARDONE’S PRODUCTS · OWNER ONLY</span><h1>Store management</h1></div><button className="button button-outline-dark" onClick={()=>void sb.auth.signOut()}><LogOut size={17}/> Sign out</button></div>
- <nav className="admin-tabs" aria-label="Store management">{(['overview','settings','products','orders','audit'] as const).map(name=><button key={name} className={tab===name?'selected':''} onClick={()=>void load(name)}>{name==='audit'?'Change history':name[0].toUpperCase()+name.slice(1)}</button>)}</nav>
+ <nav className="admin-tabs" aria-label="Store management">{(['overview','settings','products','orders','testimonials','audit'] as const).map(name=><button key={name} className={tab===name?'selected':''} onClick={()=>void load(name)}>{name==='audit'?'Change history':name[0].toUpperCase()+name.slice(1)}</button>)}</nav>
  {message&&<p role="status" className="status-note">{message}</p>}
  {tab==='overview'&&<div className="admin-metrics">{[['Orders',summary.ordersCount],['Completed orders',summary.completed],['Completed-order value (JMD)',summary.verifiedRevenueJmd],['Awaiting payment review',summary.awaitingPayment]].map(([a,b])=><div key={String(a)}><span>{String(a)}</span><strong>{b===undefined?'—':Number(b).toLocaleString('en-JM')}</strong></div>)}</div>}
  {tab==='settings'&&<div className="admin-panel"><h2>Business contact & store settings</h2><p>Changes here update the production storefront. Bank account changes are logged. Never save online-banking passwords here.</p><div className="admin-form-grid">
@@ -92,6 +93,7 @@ export default function AdminPage(){
  {selected==='__new__'?<ProductEditor value={{id:'',slug:'',name:'',subtitle:'',description:'',benefits:[],howToUse:'',ingredientsNote:'',caution:'',category:['Hair'],accent:'amber',featured:false,active:false,sortOrder:products.length,variants:[{id:'',label:'2 fl oz · 60 mL',ml:60,priceJmd:null,available:false}]}} onSave={p=>save({action:'saveProduct',product:p})} onUpload={upload} busy={busy}/>:edit&&<ProductEditor key={textVal(edit.id)} value={editAsProduct(edit)} onSave={p=>save({action:'saveProduct',product:p})} onUpload={upload} busy={busy}/>}
  </div>}
  {tab==='orders'&&<div className="admin-panel"><h2>Customer requests & orders</h2><p>Payment must be checked independently before marking it verified. Customer details are visible only to the authenticated owner.</p><label className="form-field">Filter orders<select value={orderFilter} onChange={e=>setOrderFilter(e.target.value)}>{['all','new_request','pending','awaiting_payment','payment_submitted','payment_verified','processing','ready_for_pickup','dispatched','completed','cancelled'].map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label><div className="admin-orders">{orders.filter(o=>orderFilter==='all'||o.status===orderFilter).map(o=><article key={textVal(o.id)}><div className="admin-order-top"><strong>{textVal(o.reference)}</strong><span>{new Date(textVal(o.created_at)).toLocaleDateString('en-JM')}</span></div><p>{textVal(o.customer_name)} · {textVal(o.phone)} · {textVal(o.parish)}</p><p>{textVal(o.email)} {textVal(o.address)}</p><p>Payment method: {textVal(o.payment_method)} · Priced subtotal: J${Number(o.priced_subtotal_jmd||0).toLocaleString('en-JM')}</p><details><summary>Items and notes</summary><pre>{JSON.stringify(o.lines,null,2)}</pre><p>{textVal(o.notes)}</p>{Boolean(o.receipt_path)&&<button type="button" className="button button-outline-dark" onClick={()=>void viewReceipt(textVal(o.id))}>Open private receipt (60-second link)</button>}</details><label>Fulfilment / payment status<select value={textVal(o.status)} disabled={busy} onChange={e=>void save({action:'updateOrder',id:o.id,status:e.target.value})}>{['new_request','pending','awaiting_payment','payment_submitted','payment_verified','processing','ready_for_pickup','dispatched','completed','cancelled','quoted','confirmed','fulfilled'].map(s=><option key={s} value={s}>{s.replaceAll('_',' ')}</option>)}</select></label></article>)}</div></div>}
+ {tab==='testimonials'&&<TestimonialsModeration sb={sb}/>}
  {tab==='audit'&&<div className="admin-panel"><h2>Administrative change history</h2><p>Recent owner actions, including banking changes and manual payment verifications.</p>{audits.map((a,i)=><p className="admin-audit" key={i}><strong>{textVal(a.event)}</strong> · {textVal(a.entity_id)} · {new Date(textVal(a.created_at)).toLocaleString('en-JM')}</p>)}</div>}
  </div></section>;
 }
