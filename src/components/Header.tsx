@@ -9,7 +9,7 @@ import { useStore } from "@/components/StoreProvider";
 const links = [
   { href: "/shop", text: "The collection" },
   { href: "/about", text: "Our story" },
-  { href: "/faq", text: "Oil rituals" },
+  { href: "/faq", text: "Oil routines" },
   { href: "/testimonials", text: "Testimonials" },
   { href: "/contact", text: "Contact" },
 ];

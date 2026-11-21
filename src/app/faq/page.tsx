@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-export const metadata: Metadata={title:"Ritual Guide & FAQ"};
+export const metadata: Metadata={title:"Routine Guide & FAQ"};
 const faqs=[
   ["How do I choose the right oil?","Explore each product's benefits, texture and suggested use. Castor oil is naturally rich and thick; jojoba is lighter; coconut oil can become solid in cooler conditions. Patch test before first use."],
   ["Can I buy oils that say “Price on request”?","Yes. Add them to your bag and send a quotation request through checkout. We’ll confirm the price and delivery arrangements before any payment is required."],
@@ -11,4 +11,4 @@ const faqs=[
   ["Is the rosemary oil ready to use directly on skin?","We are confirming the exact formulation. Concentrated rosemary essential oil should not be applied undiluted to skin. The product is not currently available to purchase on this website."],
   ["Are these products medicines or hair-growth treatments?","No. The listed uses are cosmetic. Individual experiences vary; we do not claim our oils diagnose, cure, or treat medical conditions."],
 ];
-export default function FaqPage(){return <><section className="page-hero"><div className="container"><span className="eyebrow">A LITTLE MORE GUIDANCE</span><h1>The ritual <em>guide.</em></h1><p>Questions, answers, and a little help choosing your next favourite.</p></div></section><section className="section faq-section"><div className="container faq-layout"><div><span className="eyebrow">FREQUENTLY ASKED QUESTIONS</span><h2>We’re here<br/>to <em>help.</em></h2><p>Still looking for an answer? Visit our <Link href="/policies">delivery and returns information</Link> for more details.</p></div><div className="faq-list">{faqs.map(([q,a])=><details key={q}><summary>{q}<span>+</span></summary><p>{a}</p></details>)}</div></div></section></>}
+export default function FaqPage(){return <><section className="page-hero"><div className="container"><span className="eyebrow">A LITTLE MORE GUIDANCE</span><h1>The routine <em>guide.</em></h1><p>Questions, answers, and a little help choosing your next favourite.</p></div></section><section className="section faq-section"><div className="container faq-layout"><div><span className="eyebrow">FREQUENTLY ASKED QUESTIONS</span><h2>We’re here<br/>to <em>help.</em></h2><p>Still looking for an answer? Visit our <Link href="/policies">delivery and returns information</Link> for more details.</p></div><div className="faq-list">{faqs.map(([q,a])=><details key={q}><summary>{q}<span>+</span></summary><p>{a}</p></details>)}</div></div></section></>}

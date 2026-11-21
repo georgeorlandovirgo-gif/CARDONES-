@@ -5,7 +5,7 @@ import { ArrowUpRight, Instagram, Leaf } from "lucide-react";
 export function Footer() {
   const settings=useMerchant();
   return <footer className="footer"><div className="container">
-    <div className="footer-top"><div><span className="eyebrow">BOTANICAL BEAUTY, THE CARDONE’S WAY</span><h2>Rituals rooted<br/><em>in nature.</em></h2></div><Link href="/shop" className="button button-outline-light">Explore the collection <ArrowUpRight size={17}/></Link></div>
+    <div className="footer-top"><div><span className="eyebrow">BOTANICAL BEAUTY, THE CARDONE’S WAY</span><h2>Routines rooted<br/><em>in nature.</em></h2></div><Link href="/shop" className="button button-outline-light">Explore the collection <ArrowUpRight size={17}/></Link></div>
     <div className="footer-divider"/>
     <div className="footer-columns"><div className="footer-brand"><Link href="/" className="footer-wordmark">CARDONE’S <span>PRODUCTS</span></Link><p>A thoughtfully presented collection of hair and skin oils, packaged in St. Elizabeth, Jamaica.</p><p className="footer-location"><Leaf size={15}/> Made with you in mind.</p></div>
       <div><h4>Discover</h4><Link href="/shop">Shop all oils</Link><Link href="/about">Our story</Link><Link href="/testimonials">Customer testimonials</Link><Link href="/faq">How to use our oils</Link></div>
