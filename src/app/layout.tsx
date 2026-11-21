@@ -1,3 +1,4 @@
+import {TrafficTracker} from '@/components/TrafficTracker';
 import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,5 +16,5 @@ export const metadata: Metadata = {
   robots: process.env.NEXT_PUBLIC_STORE_DEMO === "1" ? { index:false, follow:false } : { index:true, follow:true },
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>) {
-  return <html lang="en"><body><a className="skip-link" href="#main-content">Skip to content</a>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div className="preview-ribbon">CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<CatalogProvider><MerchantProvider><StoreProvider><Header/><RevealMotion/><main id="main-content">{children}</main><Footer/><CartDrawer/></StoreProvider></MerchantProvider></CatalogProvider></body></html>;
+  return <html lang="en"><body><a className="skip-link" href="#main-content">Skip to content</a>{process.env.NEXT_PUBLIC_STORE_DEMO === "1" && <div className="preview-ribbon">CARDONE’S PREVIEW STORE · FOR TESTING ONLY · NO REAL ORDERS OR PAYMENTS</div>}<CatalogProvider><MerchantProvider><StoreProvider><Header/><RevealMotion/><TrafficTracker/><main id="main-content">{children}</main><Footer/><CartDrawer/></StoreProvider></MerchantProvider></CatalogProvider></body></html>;
 }

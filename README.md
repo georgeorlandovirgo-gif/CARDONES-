@@ -61,3 +61,6 @@ See [verification report](docs/VERIFICATION.md) for actual test results and depl
 
 ## Customer testimonials
 Run `supabase/migrations/004_testimonials.sql` after migrations 001–003. The new `/testimonials` page accepts written stories and optional photos; the owner dashboard has a Testimonials review tab. See [testimonials setup](docs/testimonials.md). GitHub Pages remains a design preview with submissions disabled.
+
+## Private traffic reports
+Apply migration `005_traffic.sql` to enable the owner-only Traffic dashboard. See [traffic setup](docs/traffic.md) for activation, counting rules and privacy details.
