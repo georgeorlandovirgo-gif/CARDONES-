@@ -83,7 +83,10 @@ export async function catalog():Promise<Product[]> {
 export async function rateLimit(req:NextRequest,scope="orders"){
  const secret=process.env.RATE_LIMIT_SECRET;
  if(!secret)throw new Error('RATE_LIMIT_SECRET must be configured before accepting orders.');
- const ip=req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'';
+ const header=process.env.TRUSTED_CLIENT_IP_HEADER;
+ if(!header||!['cf-connecting-ip','x-forwarded-for','x-real-ip'].includes(header))throw Error('Trusted proxy must be configured before accepting orders.');
+ // The hosting proxy must overwrite this header, and direct origin access must be blocked.
+ const ip=req.headers.get(header)?.split(',')[0]?.trim()||'';
  if(!ip)throw new Error('Unable to verify request origin.');
  const fingerprint=createHmac('sha256',secret).update(scope+':'+ip).digest('hex');
  const {data,error}=await db().rpc('take_cardones_order_slot',{p_fingerprint:fingerprint});
@@ -91,3 +94,15 @@ export async function rateLimit(req:NextRequest,scope="orders"){
  if(!data)throw new Error('Too many order attempts. Please try later.');
 }
 export function signature(s:string){return createHash('sha256').update(s).digest('hex');}
+export async function rateLimitIdentity(scope:string,value:string){
+ const secret=process.env.RATE_LIMIT_SECRET;if(!secret)throw Error('Request protection unavailable.');
+ const fingerprint=createHmac('sha256',secret).update(scope+':'+value.trim().toLowerCase()).digest('hex');
+ const {data,error}=await db().rpc('take_cardones_order_slot',{p_fingerprint:fingerprint});
+ if(error)throw Error('Request protection unavailable.');
+ if(!data)throw Error('Too many attempts. Please try later or contact Cardone’s.');
+}
+
+export async function consumeBotToken(token:string){
+ const {data,error}=await db().rpc('consume_cardones_bot_token',{p_hash:createHash('sha256').update(token).digest('hex')});
+ if(error||data!==true)throw Error('Security token already used or protection unavailable. Retry with a new security check.');
+}

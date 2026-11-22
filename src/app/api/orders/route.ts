@@ -1,10 +1,11 @@
+import {verifyBot,SecurityCheckError} from '@/lib/server/bot-check';
 import {limitedForm} from '@/lib/server/upload';
 import {deliverySchema,deliveryDetails} from '@/lib/delivery';
 import { NextRequest,NextResponse } from 'next/server';
 import {randomBytes,createHash} from 'node:crypto';
 import { z } from 'zod';
 import {parishes,jamaicanPhone} from '@/lib/commerce';
-import {catalog,db,rateLimit,settings,publicSettings} from '@/lib/server/store';
+import {catalog,db,rateLimit,consumeBotToken,rateLimitIdentity,settings,publicSettings} from '@/lib/server/store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const schema=z.object({
@@ -24,7 +25,11 @@ export async function POST(req:NextRequest){
   const payload=form.get('order');if(typeof payload!=='string'||payload.length>18000)return failure('Invalid order request.');
   let obj:unknown;try{obj=JSON.parse(payload);}catch{return failure('Invalid order data.');}
   const parsed=schema.safeParse(obj);if(!parsed.success)return failure('Please check the required fields and selected payment method.');
+  await verifyBot(form.get('botToken'),'invoice');
+ await consumeBotToken(String(form.get('botToken')));
   const x=parsed.data;if(x.website)return failure('Unable to process request.');
+  await rateLimitIdentity('invoice-email',x.email);
+  await rateLimitIdentity('invoice-phone',jamaicanPhone(x.phone)!);
   const config=await settings();
   let shipping;try{shipping=deliveryDetails(x.shipping,x.parish,config.delivery_fee_jmd);}catch(e){return failure(e instanceof Error?e.message:'Invalid delivery selection.');}
   if(config.store_paused||!config.delivery_enabled)return failure('Ordering or delivery is temporarily paused.',503);
@@ -59,6 +64,7 @@ export async function POST(req:NextRequest){
   const publicConfig=publicSettings(config);
   return NextResponse.json({ok:true,reference,token,issuedAt:new Date().toISOString(),customer:{name:x.name,email:x.email,phone:jamaicanPhone(x.phone),address:x.address,parish:x.parish},bank:publicConfig.payment.bank,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:shipping.fee,shipping,message:'Invoice generated. Transfer the amount using this reference, then upload proof and submit your order.'},{status:201,headers:{'Cache-Control':'no-store'}});
  }catch(e){
+  if(e instanceof SecurityCheckError)return failure(e.message,400);
   const msg=e instanceof Error?e.message:'';
   if(msg.startsWith('Too many'))return failure(msg,429);
   return failure('Ordering is not yet configured or temporarily unavailable.',503);

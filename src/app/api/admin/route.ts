@@ -100,9 +100,17 @@ export async function POST(req:NextRequest){
    const {error}=await sb.rpc('save_cardones_catalogue_product',{p_actor:admin.id,p_product:p});
    return error?err('Product save failed. Check unique page and size IDs; no changes saved.',409):NextResponse.json({ok:true});
   }
+  if(action==='verifyBankCredit'){
+   const v=z.object({id:z.string().uuid(),creditReference:z.string().trim().min(4).max(100),amountJmd:z.number().finite().nonnegative(),reviewNote:z.string().max(600),bankConfirmed:z.literal(true)}).safeParse(raw);
+   if(!v.success)return err('Enter the bank credit details and confirm that you independently checked cleared funds.');
+   const x=v.data;
+   const result=await sb.rpc('verify_cardones_bank_credit',{p_actor:admin.id,p_id:x.id,p_credit:x.creditReference,p_amount:x.amountJmd,p_note:x.reviewNote});
+   return result.error?err(result.error.code==='23505'?'That bank credit has already been assigned to an order.':result.error.message,400):NextResponse.json({ok:true});
+  }
   if(action==='updateOrder'){
    // Validate only relevant keys (including action) separately.
    const id=raw.id,status=raw.status;
+   if(status==='payment_verified')return err('Use the bank verification form to record cleared funds.');
    if(typeof id!=='string'||!z.string().uuid().safeParse(id).success||!statuses.includes(status))return err('Invalid order update.');
    const {data:before,error:ex}=await sb.from('store_orders').select('status,payment_method,shipping_service').eq('id',id).single();
    if(ex||!before)return err('Order not found.',404);
