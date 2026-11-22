@@ -3,8 +3,8 @@ import Link from "next/link";
 export const metadata: Metadata={title:"Routine Guide & FAQ"};
 const faqs=[
   ["How do I choose the right oil?","Explore each product's benefits, texture and suggested use. Castor oil is naturally rich and thick; jojoba is lighter; coconut oil can become solid in cooler conditions. Patch test before first use."],
-  ["Can I buy oils that say “Price on request”?","Yes. Add them to your bag and send a quotation request through checkout. We’ll confirm the price and delivery arrangements before any payment is required."],
-  ["How do I place an order?","Add available items to your bag, select your size, and complete checkout. Order submissions require our secure order database to be enabled. We will contact you to confirm your order, payment method and fulfilment."],
+  ["Can I buy oils that say “Price on request”?","Contact Cardone’s for a confirmed price first. Only items with confirmed prices can be included on a payable invoice."],
+  ["How do I place an order?","Add available items, choose delivery and enter your name, address, telephone and email. Generate and save your invoice, pay by bank transfer, then upload proof and submit your order before closing the page. Cardone’s verifies the funds before processing and dispatch."],
   ["Can I pay with a credit card online?","Online card payment is not yet enabled. Available arrangements are confirmed individually. We will never request your full card details by chat or email."],
   ["Where do you deliver?","Free town drop-off is available in Hopewell, Sandy Bay and Lucea (Hanover), and Negril (Westmoreland). Choose Knutsford Express depot collection, Tara address delivery or office collection, or prepaid Zip Mail. Knutsford and Tara courier charges are paid separately on receipt; products must be prepaid. Zip Mail postage is paid with the products. Dispatch is Wednesday or Saturday after payment verification."],
   ["What if my coconut oil becomes solid?","This can occur naturally in cooler conditions. Keep the container closed and warm it gently in lukewarm water. Avoid high heat and do not microwave the bottle."],

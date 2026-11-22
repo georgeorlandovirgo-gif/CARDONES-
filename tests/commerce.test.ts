@@ -19,7 +19,7 @@ test('Cart rejects corrupt quantities and preserves unpriced/coming-soon catalog
 test('PostgreSQL migrations, atomic saves, rollback, throttling and access grants',async()=>{
  const db=new PGlite();
  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA storage; CREATE TABLE storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);');
- for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql','006_delivery.sql']){
+ for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql','006_delivery.sql','007_invoice_checkout.sql']){
   const sql=(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8')).replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;','');
   await db.exec(sql);
  }
@@ -55,5 +55,16 @@ test('PostgreSQL migrations, atomic saves, rollback, throttling and access grant
  if([3,6].includes(weekday)){await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'dispatched']);await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'completed']);}else await assert.rejects(db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'dispatched']));
  await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'awaiting_payment']);
  assert.equal((await db.query<{payment_verified_at:unknown}>('SELECT payment_verified_at FROM store_orders WHERE id=$1',[orderId])).rows[0].payment_verified_at,null);
+ const invoice=await db.query<{id:string}>("INSERT INTO store_orders(reference,customer_name,phone,parish,fulfillment,lines,has_unpriced,payment_method,shipping_service,delivery_fee_jmd,invoice_upload_hash,billing_address,status) VALUES('TEST-INVOICE','Fixture','18765550100','Hanover','delivery','[]',false,'bank_transfer','zip_mail',800,'secret-hash','Sample address','awaiting_payment') RETURNING id");
+ const invoiceId=invoice.rows[0].id;
+ await assert.rejects(db.query('SELECT update_cardones_order($1,$2,$3)',[actor,invoiceId,'payment_verified']));
+ await assert.rejects(db.query('SELECT submit_cardones_invoice($1,$2,$3,$4)',['TEST-INVOICE','wrong','private/proof.png','TX-1']));
+ await db.exec('SET ROLE anon');await assert.rejects(db.query('SELECT submit_cardones_invoice($1,$2,$3,$4)',['TEST-INVOICE','secret-hash','private/proof.png','TX-1']));await db.exec('RESET ROLE');
+ assert.equal((await db.query<{ok:boolean}>('SELECT submit_cardones_invoice($1,$2,$3,$4) ok',['TEST-INVOICE','secret-hash','private/proof.png','TX-1'])).rows[0].ok,true);
+ const submitted=(await db.query<{status:string;payment_verified_at:unknown;receipt_path:string}>('SELECT status,payment_verified_at,receipt_path FROM store_orders WHERE id=$1',[invoiceId])).rows[0];
+ assert.equal(submitted.status,'payment_submitted');assert.equal(submitted.payment_verified_at,null);
+ assert.equal((await db.query<{ok:boolean}>('SELECT submit_cardones_invoice($1,$2,$3,$4) ok',['TEST-INVOICE','secret-hash','private/other.png','TX-2'])).rows[0].ok,false);
+ assert.equal((await db.query<{receipt_path:string}>('SELECT receipt_path FROM store_orders WHERE id=$1',[invoiceId])).rows[0].receipt_path,'private/proof.png');
+ await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,invoiceId,'payment_verified']);
  await db.close();
 });

@@ -44,7 +44,7 @@ The repository previously contained two incompatible migrations named `002_*` an
 
 `/admin` provides business and WhatsApp contacts, bank-transfer details, editable policies, delivery parishes and fee, pickup instructions, temporary closure, image uploads, product variants/prices/stock/visibility/order, order filters/statuses, private receipt review and an audit history. Changes refresh the storefront when saved, on window focus, and every minute. Prices and availability are independently checked on each order request. Hidden or empty database catalogues no longer fall back to selling the checked-in products.
 
-Contact links and WhatsApp checkout read the same merchant settings. Unpriced items require a quotation; they never produce a false payable total. A coming-soon or zero-stock variant cannot be added. Known delivery fees appear separately and are saved with the order; unknown fees remain unconfirmed. Customers see a persisted reference and item summary only after a successful database insert.
+Contact links read the merchant settings. Checkout uses bank transfer only. Unpriced items require a quotation; they never produce a false payable total. A coming-soon or zero-stock variant cannot be added. Known delivery fees appear separately and are saved with the order; unknown fees remain unconfirmed. Customers see a persisted reference and item summary only after a successful database insert.
 
 ## Security and operational limits
 
@@ -67,3 +67,10 @@ Apply migration `005_traffic.sql` to enable the owner-only Traffic dashboard. Se
 
 ## Delivery options
 Apply `006_delivery.sql` and configure the Zip Mail prepaid postage amount in owner settings. See [delivery setup](docs/delivery.md) for free towns, courier COD, Tara destinations and Wednesday/Saturday dispatch safeguards.
+
+
+## Invoice-first bank transfer checkout
+Apply migrations 001–007 in numeric order, including `007_invoice_checkout.sql`, before using this checkout. No live database is changed by committing code.
+Customers provide name, billing address, telephone and required email, choose delivery, and generate a printable invoice using server-checked prices. The invoice is saved as awaiting payment; bank details and the payable amount appear before transfer. Unpriced items cannot generate a payable invoice.
+Customers keep the invoice page open, transfer through their bank, attach a JPG/PNG/WebP/PDF (maximum 5 MB) and bank transaction reference, then submit. A random access token is kept only on that page; only its SHA-256 hash is stored. Closing the page requires contacting the owner with the invoice reference. Proof is private, submissions are atomic and retry-safe, and uploading never verifies funds. The owner reviews the proof and verifies payment before processing. The dashboard distinguishes invoices awaiting customer submission.
+The GitHub Pages preview generates a clearly marked, non-payable sample invoice locally and accepts no payment files or real orders. Production requires a server host, Supabase, all migrations and configured bank details. Invoice creation does not reserve stock. Automatic invoice emails and resuming an invoice after closing the page are not implemented.
