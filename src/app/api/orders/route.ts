@@ -1,3 +1,4 @@
+import {deliverySchema,deliveryDetails} from '@/lib/delivery';
 import { NextRequest,NextResponse } from 'next/server';
 import {randomBytes} from 'node:crypto';
 import { z } from 'zod';
@@ -8,7 +9,7 @@ export const dynamic='force-dynamic';
 const schema=z.object({
  name:z.string().trim().min(2).max(100), email:z.union([z.string().email().max(150),z.literal('')]).optional(),
  phone:z.string().trim().max(30).refine(x=>Boolean(jamaicanPhone(x))), parish:z.enum(parishes),
- address:z.string().max(240).optional(), fulfillment:z.enum(['pickup','delivery']),
+ address:z.string().max(240).optional(), fulfillment:z.enum(['pickup','delivery']), shipping:deliverySchema,
  notes:z.string().max(600).optional(), consent:z.literal(true),
  website:z.string().max(80).optional(),
  paymentMethod:z.enum(['bank_transfer','cash','whatsapp','quote_request']),
@@ -25,11 +26,11 @@ export async function POST(req:NextRequest){
   const parsed=schema.safeParse(obj);if(!parsed.success)return failure('Please check the required fields and selected payment method.');
   const x=parsed.data;if(x.website)return failure('Unable to process request.');
   const config=await settings();
-  if(x.fulfillment==='delivery'&&(!x.address?.trim()||!config.available_parishes.includes(x.parish)))return failure('Enter your delivery address and choose an available parish.');
-  if(config.store_paused)return failure('Ordering is temporarily paused. Please contact Cardone’s.',503);
-  if(x.fulfillment==='delivery'&&!config.delivery_enabled || x.fulfillment==='pickup'&&!config.pickup_enabled)return failure('Selected fulfilment method is unavailable.');
+  let shipping;try{shipping=deliveryDetails(x.shipping,x.parish,config.delivery_fee_jmd);}catch(e){return failure(e instanceof Error?e.message:'Invalid delivery selection.');}
+  if(config.store_paused||!config.delivery_enabled)return failure('Ordering or delivery is temporarily paused.',503);
+  if(!config.available_parishes.includes(x.parish))return failure('Delivery is not available in the selected parish.');
+  if(x.paymentMethod==='cash')return failure('Products must be paid for before dispatch. Courier COD applies only to the courier charge.');
   if(x.paymentMethod==='bank_transfer'&&!(config.bank_enabled&&config.bank_account&&config.bank_name))return failure('Bank transfer is not currently available.');
-  if(x.paymentMethod==='cash'&&!config.cod_enabled)return failure('Cash on delivery/pickup is not currently available.');
   if(x.paymentMethod==='whatsapp'&&!(config.whatsapp_enabled&&config.whatsapp))return failure('WhatsApp checkout is not currently available.');
   await rateLimit(req);
   const all=await catalog();let subtotal=0,unpriced=false;
@@ -71,11 +72,11 @@ export async function POST(req:NextRequest){
    if(error)return failure('Receipt could not be safely stored. Please try without a receipt.',503);
   }
   const status=x.paymentMethod==='bank_transfer'?(receiptPath?'payment_submitted':'awaiting_payment'):
-   x.paymentMethod==='cash'?'pending':'new_request';
+   'new_request';
   const res=await sb.from('store_orders').insert({
-   reference,customer_name:x.name,email:x.email||null,phone:jamaicanPhone(x.phone),parish:x.parish,address:x.address||null,
-   fulfillment:x.fulfillment,notes:x.notes||null,lines,priced_subtotal_jmd:subtotal,
-   has_unpriced:unpriced,status,delivery_fee_jmd:x.fulfillment==='delivery'?config.delivery_fee_jmd:0,payment_method:x.paymentMethod,receipt_path:receiptPath
+   reference,customer_name:x.name,email:x.email||null,phone:jamaicanPhone(x.phone),parish:x.parish,address:shipping.destination,
+   fulfillment:'delivery',shipping_service:shipping.service,shipping_town:shipping.town||null,shipping_destination:shipping.destination,courier_fee_collect:shipping.courierCollect,notes:x.notes||null,lines,priced_subtotal_jmd:subtotal,
+   has_unpriced:unpriced,status,delivery_fee_jmd:shipping.fee,payment_method:x.paymentMethod,receipt_path:receiptPath
   });
   if(res.error){if(receiptPath)await sb.storage.from('cardones-receipts').remove([receiptPath]);return failure('Unable to record the order. Please contact the store.',503);}
   // Optional email notification: order has already been persisted.
@@ -88,8 +89,8 @@ export async function POST(req:NextRequest){
   const message=lines.map(l=>`${l.quantity} x ${l.name} (${l.size})`).join('; ');
   const whatsappUrl=x.paymentMethod==='whatsapp'&&publicConfig.whatsapp?
    `https://wa.me/${publicConfig.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(`Cardone's order ${reference}\n${message}\nPriced subtotal J$${subtotal}\n${x.fulfillment} in ${x.parish}. Please confirm.`)}`:null;
-  return NextResponse.json({ok:true,reference,quoted:unpriced,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:x.fulfillment==='delivery'?config.delivery_fee_jmd:0,fulfillment:x.fulfillment,paymentMethod:x.paymentMethod,whatsappUrl,
-   message:'Your request has been recorded. Payment remains unverified until Cardone’s confirms it.'},
+  return NextResponse.json({ok:true,reference,quoted:unpriced,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:shipping.fee,shipping,fulfillment:'delivery',paymentMethod:x.paymentMethod,whatsappUrl,
+   message:'Your request has been recorded. Dispatch is Wednesday or Saturday only, after payment has been verified.'},
    {status:201,headers:{'Cache-Control':'no-store'}});
  }catch(e){
   const msg=e instanceof Error?e.message:'';

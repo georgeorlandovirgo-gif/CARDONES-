@@ -64,3 +64,6 @@ Run `supabase/migrations/004_testimonials.sql` after migrations 001–003. The n
 
 ## Private traffic reports
 Apply migration `005_traffic.sql` to enable the owner-only Traffic dashboard. See [traffic setup](docs/traffic.md) for activation, counting rules and privacy details.
+
+## Delivery options
+Apply `006_delivery.sql` and configure the Zip Mail prepaid postage amount in owner settings. See [delivery setup](docs/delivery.md) for free towns, courier COD, Tara destinations and Wednesday/Saturday dispatch safeguards.

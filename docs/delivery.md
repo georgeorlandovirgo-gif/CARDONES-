@@ -1,0 +1,13 @@
+# Checkout delivery
+
+Apply migration 006 after migrations 001–005. This adds structured order delivery fields and replaces the owner status-change function with dispatch safeguards. Existing legacy orders retain their previous workflow.
+
+Free town drop-off: Hopewell, Sandy Bay and Lucea in Hanover; Negril in Westmoreland. Customers enter a meeting point/address; the town/parish combination is validated server-side. Knutsford Express collects at a customer-selected depot. Tara offers address delivery or collection at a customer-entered preferred/nearest office. No geolocation or courier booking API is integrated; the owner confirms the selected branch/destination.
+
+COD here means the courier charge only, paid directly to Knutsford or Tara. Products must be paid to Cardone’s and independently verified before shipment. Zip Mail postage is included in the amount payable to Cardone’s. No carrier rates are invented or guaranteed. Courier availability and collection arrangements must be confirmed operationally before launch.
+
+Owner → Settings now uses the former generic delivery fee as the explicitly labelled Zip Mail prepaid postage amount. Migration 006 clears the old value to avoid carrying an unrelated fee forward. Set the agreed JMD rate before enabling Zip Mail checkout; a blank rate blocks Zip Mail submissions. The configured rate is a single flat amount per order, not a live carrier quote. If rates vary with weight or destination, agree a flat rate or extend rate rules before enabling this option. Free and COD courier services add zero to Cardone’s delivery total; COD charges are explicitly extra. Saved orders retain the rate applied at submission.
+
+Order status changes require a payment-verification timestamp before processing, ready-for-pickup, dispatch or completion. Unpriced orders cannot be verified; confirm product pricing and place a priced order before fulfilment. Wednesday/Saturday dispatch checks use America/Jamaica, with a saved dispatch timestamp required before completion. Uploading a receipt never verifies payment. Returning an order to an unpaid/cancelled status clears payment verification. Cancelled shipping orders cannot be reopened. No cutoff time or promised arrival date is assumed; the owner confirms the shipment date.
+
+The preview allows exploring delivery choices without collecting customer details or creating real orders. Production credentials and migrations remain necessary. Before launch, test all five services, the configured Zip Mail charge, owner verification, and scheduled dispatch on the production host.

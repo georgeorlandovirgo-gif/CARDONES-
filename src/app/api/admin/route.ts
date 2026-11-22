@@ -104,11 +104,11 @@ export async function POST(req:NextRequest){
    // Validate only relevant keys (including action) separately.
    const id=raw.id,status=raw.status;
    if(typeof id!=='string'||!z.string().uuid().safeParse(id).success||!statuses.includes(status))return err('Invalid order update.');
-   const {data:before,error:ex}=await sb.from('store_orders').select('status,payment_method').eq('id',id).single();
+   const {data:before,error:ex}=await sb.from('store_orders').select('status,payment_method,shipping_service').eq('id',id).single();
    if(ex||!before)return err('Order not found.',404);
-   if(status==='payment_verified' && before.payment_method!=='bank_transfer')return err('Only bank transfers can be manually marked verified.');
+   if(status==='payment_verified' && before.payment_method!=='bank_transfer'&&!before.shipping_service)return err('Only bank transfers can be manually marked verified.');
    const result=await sb.rpc('update_cardones_order',{p_actor:admin.id,p_id:id,p_status:status});
-   return result.error?err('Order status change failed.',503):NextResponse.json({ok:true});
+   return result.error?err(result.error.message||'Order status change failed.',400):NextResponse.json({ok:true});
   }
   return err('Unknown admin operation.');
  }catch{return err('Admin action unavailable or not configured.',503);}

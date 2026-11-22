@@ -19,7 +19,7 @@ test('Cart rejects corrupt quantities and preserves unpriced/coming-soon catalog
 test('PostgreSQL migrations, atomic saves, rollback, throttling and access grants',async()=>{
  const db=new PGlite();
  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA storage; CREATE TABLE storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);');
- for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql']){
+ for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql','006_delivery.sql']){
   const sql=(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8')).replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;','');
   await db.exec(sql);
  }
@@ -46,5 +46,14 @@ test('PostgreSQL migrations, atomic saves, rollback, throttling and access grant
  assert.equal((await db.query<{published_at:unknown}>('SELECT published_at FROM store_testimonials WHERE id=$1',[id])).rows[0].published_at,null);
  assert.equal((await db.query<{public:boolean}>("SELECT public FROM storage.buckets WHERE id='cardones-testimonials'")).rows[0].public,false);
  await db.exec('SET ROLE anon');await assert.rejects(db.query('SELECT * FROM store_testimonials'));await assert.rejects(db.query('SELECT moderate_cardones_testimonial($1,$2,$3)',[actor,id,'approved']));await db.exec('RESET ROLE');
+ const order=await db.query<{id:string}>("INSERT INTO store_orders(reference,customer_name,phone,parish,fulfillment,lines,has_unpriced,payment_method,shipping_service,delivery_fee_jmd) VALUES('TEST-DELIVERY','Fixture','18765550100','Hanover','delivery','[]',false,'bank_transfer','zip_mail',800) RETURNING id");
+ const orderId=order.rows[0].id;
+ for(const status of ['processing','ready_for_pickup','dispatched','completed','fulfilled'])await assert.rejects(db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,status]));
+ await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'payment_verified']);
+ await assert.rejects(db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'completed']));
+ const weekday=(await db.query<{day:number}>("SELECT extract(dow FROM now() AT TIME ZONE 'America/Jamaica')::int AS day")).rows[0].day;
+ if([3,6].includes(weekday)){await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'dispatched']);await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'completed']);}else await assert.rejects(db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'dispatched']));
+ await db.query('SELECT update_cardones_order($1,$2,$3)',[actor,orderId,'awaiting_payment']);
+ assert.equal((await db.query<{payment_verified_at:unknown}>('SELECT payment_verified_at FROM store_orders WHERE id=$1',[orderId])).rows[0].payment_verified_at,null);
  await db.close();
 });
