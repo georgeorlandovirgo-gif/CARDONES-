@@ -48,9 +48,9 @@ export function publicSettings(s:MerchantSettings){
  // Bank account details are CUSTOMER-FACING only when the merchant enables transfer.
  return {availableParishes:s.available_parishes,phone:s.phone,whatsapp:s.whatsapp_enabled?s.whatsapp:null,email:s.email,
  instagram:s.instagram,facebook:s.facebook,location:s.location,contactHours:s.contact_hours,
- payment:{bankTransfer:s.bank_enabled&&Boolean(s.bank_account&&s.bank_name),
+ payment:{bankTransfer:s.bank_enabled&&Boolean(s.bank_account&&s.bank_name&&s.bank_holder),
  cash:s.cod_enabled,whatsapp:s.whatsapp_enabled&&Boolean(s.whatsapp),
- bank:s.bank_enabled&&s.bank_account&&s.bank_name?{
+ bank:s.bank_enabled&&s.bank_account&&s.bank_name&&s.bank_holder?{
  name:s.bank_name,holder:s.bank_holder,account:s.bank_account,
  branch:s.bank_branch,type:s.bank_type,instructions:s.bank_instructions}:null},
  delivery:s.delivery_enabled,pickup:s.pickup_enabled,deliveryInformation:s.delivery_information,

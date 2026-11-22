@@ -34,7 +34,7 @@ export async function POST(req:NextRequest){
   let shipping;try{shipping=deliveryDetails(x.shipping,x.parish,config.delivery_fee_jmd);}catch(e){return failure(e instanceof Error?e.message:'Invalid delivery selection.');}
   if(config.store_paused||!config.delivery_enabled)return failure('Ordering or delivery is temporarily paused.',503);
   if(!config.available_parishes.includes(x.parish))return failure('Delivery is not available in the selected parish.');
-  if(x.paymentMethod==='bank_transfer'&&!(config.bank_enabled&&config.bank_account&&config.bank_name))return failure('Bank transfer is not currently available.');
+  if(x.paymentMethod==='bank_transfer'&&!(config.bank_enabled&&config.bank_account&&config.bank_name&&config.bank_holder))return failure('Bank transfer is not currently available.');
 
   const all=await catalog();let subtotal=0,unpriced=false;
   const seen=new Set<string>();
