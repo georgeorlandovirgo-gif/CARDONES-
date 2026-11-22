@@ -77,3 +77,7 @@ The GitHub Pages preview generates a clearly marked, non-payable sample invoice 
 
 ## Payment safeguards
 Apply migration 008 and configure Turnstile plus the trusted proxy header before opening live checkout. Both submission steps fail closed without the bot protection. Duplicate receipt/reference warnings, a mandatory owner bank-review form, unique bank credit allocation and audit records protect the payment workflow. See [payment safeguards and activation](docs/payment-safeguards.md), including PDF/OCR limitations and production checks. GitHub Pages remains a non-paying preview.
+
+
+## Receipt transaction ID assistance
+The proof upload appears before the bank transaction ID field. JPEG/PNG/WebP images and the first two PDF pages are read on the customer’s device using self-hosted, version-locked Tesseract and PDF.js assets. One clearly labelled candidate fills the field; ambiguous or unreadable receipts fall back to manual entry. The customer must confirm the ID. No OCR result verifies payment or bypasses server safeguards. A built-in synthetic sample can be tested in the static preview without uploading real files. Build/dev pre-scripts prepare the reader assets from installed packages; keep these scripts enabled on the host. First use downloads the reader and English language model. Reading is bounded to 45 seconds with a manual-entry option.
