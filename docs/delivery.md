@@ -2,7 +2,7 @@
 
 Apply migration 006 after migrations 001–005. This adds structured order delivery fields and replaces the owner status-change function with dispatch safeguards. Existing legacy orders retain their previous workflow.
 
-Free town drop-off: Hopewell, Sandy Bay and Lucea in Hanover; Negril in Westmoreland. Customers enter a meeting point/address; the town/parish combination is validated server-side. Knutsford Express collects at a customer-selected depot. Tara offers address delivery or collection at a customer-entered preferred/nearest office. No geolocation or courier booking API is integrated; the owner confirms the selected branch/destination.
+Free town drop-off: Hopewell, Sandy Bay and Lucea in Hanover; Negril in Westmoreland. Customers enter a meeting point/address; the town/parish combination is validated server-side. Knutsford Express collects at a customer-selected depot. Tara offers address delivery or collection at a customer-selected published office. Collection destinations use dropdowns from the official published lists; see courier-locations.md. No geolocation or courier booking API is integrated; the owner confirms the selected branch/destination.
 
 COD here means the courier charge only, paid directly to Knutsford or Tara. Products must be paid to Cardone’s and independently verified before shipment. Zip Mail postage is included in the amount payable to Cardone’s. No carrier rates are invented or guaranteed. Courier availability and collection arrangements must be confirmed operationally before launch.
 
