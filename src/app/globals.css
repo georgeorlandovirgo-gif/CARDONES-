@@ -313,3 +313,26 @@ body{font-size:16px}input,select,textarea{font-size:16px!important}button,a,inpu
 .stories-hero h1{font-family:Georgia,'Times New Roman',serif;font-weight:400}
 .traffic-table{width:100%;border-collapse:collapse;margin:20px 0 32px;font-size:13px}.traffic-table th,.traffic-table td{text-align:left;padding:12px 8px;border-bottom:1px solid #dcd9cf;overflow-wrap:anywhere}.traffic-table th{color:#42553f}
 .invoice-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:36px;align-items:start}.checkout-invoice{background:#fff;padding:32px;border:1px solid #dcd9cf;overflow-wrap:anywhere}.checkout-invoice h1{font-family:var(--serif);font-size:48px}.checkout-invoice h2{font-size:25px;margin:24px 0 12px}.invoice-address{white-space:pre-wrap}.invoice-payment{padding:24px;background:#eceee7}.invoice-payment li{margin:12px 0}.invoice-payment p,.checkout-invoice p{line-height:1.7}.invoice-payment .button{white-space:normal}@media(max-width:800px){.invoice-layout{grid-template-columns:1fr}.checkout-invoice{padding:20px}.checkout-invoice .traffic-table{font-size:11px}.checkout-invoice .traffic-table td,.checkout-invoice .traffic-table th{padding:8px 3px}}@media print{body:has(.checkout-invoice) .header,body:has(.checkout-invoice) .announcement,body:has(.checkout-invoice) .footer,body:has(.checkout-invoice) .preview-ribbon,body:has(.checkout-invoice) .skip-link,.no-print{display:none!important}.invoice-layout{display:block}.checkout-invoice{border:0;padding:0}.checkout-invoice tr{break-inside:avoid}.checkout-invoice h2,.checkout-invoice h3{break-after:avoid}.checkout-invoice{font-size:11pt}body:has(.checkout-invoice) .section{padding:0}}
+
+/* Cardone’s terms of sale and final acknowledgement */
+.terms-consent{display:flex;gap:12px;align-items:flex-start;margin:14px 0 20px;padding:16px;background:#f7f2e8;border:1px solid #d8c8ab;color:#294433;font-size:13px;line-height:1.7}
+.terms-consent input{flex:0 0 auto;width:19px;height:19px;margin:2px 0 0;accent-color:#183b2e;cursor:pointer}
+.terms-consent label{cursor:pointer}
+.terms-consent a,.terms-final-note a{color:#765328;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+.terms-consent a:hover,.terms-final-note a:hover{color:#183b2e}
+.terms-layout{max-width:960px}
+.terms-updated{font-size:12px;opacity:.75;margin-top:14px}
+.terms-notice{padding:26px 30px;background:#f2ebde;border-left:4px solid #b9965f;margin-bottom:34px}
+.terms-notice strong{font-family:var(--serif);font-size:23px;color:#17392c}
+.terms-notice p{font-size:14px;line-height:1.8;color:#46554b;margin:12px 0 0}
+.terms-jump{padding:26px 28px;border:1px solid #e0d6c6;background:#fffdf8;margin-bottom:35px}
+.terms-jump strong{font-size:11px;text-transform:uppercase;letter-spacing:1.6px;color:#8b6b42}
+.terms-jump ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 34px;padding-left:22px;margin:18px 0 0}
+.terms-jump li{font-size:12px;color:#49604f}
+.terms-jump a:hover{text-decoration:underline;text-underline-offset:3px}
+.terms-article{border-top:1px solid #e1d8c9;padding:27px 0 24px;scroll-margin-top:130px}
+.terms-article h2{font:500 clamp(25px,3vw,34px)/1.25 var(--serif);margin:0 0 24px;color:#1d3a2c}
+.terms-article p{font-size:14px;line-height:1.9;color:#526257;margin:0 0 17px}
+.terms-article p strong{color:#263e30}
+.terms-final-note{padding:24px 0;font-size:14px;line-height:1.8}
+@media(max-width:650px){.terms-jump ol{grid-template-columns:1fr}.terms-notice{padding:20px}.terms-jump{padding:20px}.terms-consent{padding:12px}}
