@@ -31,14 +31,14 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build static preview with real product images and working client cart
         run: npm run build:preview
-      - name: Use the built storefront as the Pages publishing source
+      - name: Verify GitHub Actions is the Pages publishing source
         uses: actions/github-script@v7
         with:
           script: |
             const repository = {owner: context.repo.owner, repo: context.repo.repo};
             const {data: pages} = await github.request('GET /repos/{owner}/{repo}/pages', repository);
             if (pages.build_type !== 'workflow') {
-              await github.request('PUT /repos/{owner}/{repo}/pages', {...repository, build_type: 'workflow'});
+              core.setFailed('Repository owner: open Settings > Pages > Build and deployment, set Source to GitHub Actions, then re-run this workflow. The current branch-based source publishes the README instead of the storefront.');
             }
       - name: Upload static preview
         uses: actions/upload-pages-artifact@v3
