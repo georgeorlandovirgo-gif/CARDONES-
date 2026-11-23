@@ -11,16 +11,59 @@ import {collectionLocations,locationSources} from '@/lib/courier-locations';
 import {deliveryOptions,freeTowns,deliveryDetails} from '@/lib/delivery';
 import {jmd} from '@/lib/money';
 import {jamaicanPhone} from '@/lib/commerce';
+import {SAVED_CHECKOUT_CONTACT_KEY,readCheckoutContact,serializeCheckoutContact} from '@/lib/remember-checkout';
 export default function CheckoutPage(){
  const {lines,subtotal,hasUnpriced,clear}=useStore();const catalogue=useCatalog();const merchant=useMerchant();
  const [botToken,setBotToken]=useState(''),[botReset,setBotReset]=useState(0);
  const [invoice,setInvoice]=useState<Invoice|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState('');
  const [shipping,setShipping]=useState({service:'free_dropoff',town:'Hopewell',destination:''});
  const [form,setForm]=useState({name:'',email:'',phone:'',parish:'Hanover',fulfillment:'delivery',notes:'',consent:false,website:''});
+ const [rememberDetails,setRememberDetails]=useState(false);
+ const [savedDetailsReady,setSavedDetailsReady]=useState(false);
+ const [hasSavedDetails,setHasSavedDetails]=useState(false);
+ const [saveNotice,setSaveNotice]=useState('');
  const detail=lines.map(line=>({line,match:(()=>{const p=catalogue.find(x=>x.id===line.productId);return p?{product:p,variant:p.variants.find(v=>v.id===line.variantId)}:null;})()})).filter(x=>x.match?.variant);
  const test=process.env.NEXT_PUBLIC_STORE_DEMO==='1';
  useEffect(()=>{setForm(f=>({...f,fulfillment:merchant.delivery?'delivery':'pickup',parish:merchant.availableParishes.includes(f.parish)?f.parish:merchant.availableParishes[0]||'St. Elizabeth'}));},[merchant.delivery,merchant.availableParishes]);
  useEffect(()=>{if(shipping.service==='free_dropoff')setForm(f=>({...f,parish:freeTowns[shipping.town as keyof typeof freeTowns]}));},[shipping.service,shipping.town]);
+ // Saved contact details are optional and stored on this browser only.
+ useEffect(()=>{
+  try{
+   const saved=readCheckoutContact(window.localStorage.getItem(SAVED_CHECKOUT_CONTACT_KEY));
+   if(saved){
+    setForm(current=>({...current,name:saved.name,email:saved.email,phone:saved.phone}));
+    setRememberDetails(true);
+    setHasSavedDetails(true);
+   }
+  }catch{/* Private browsing or blocked storage must not prevent checkout. */}
+  setSavedDetailsReady(true);
+ },[]);
+ useEffect(()=>{
+  if(!savedDetailsReady||!rememberDetails)return;
+  try{
+   window.localStorage.setItem(SAVED_CHECKOUT_CONTACT_KEY,
+    serializeCheckoutContact({name:form.name,email:form.email,phone:form.phone}));
+   setHasSavedDetails(true);
+   setSaveNotice('');
+  }catch{
+   setRememberDetails(false);
+   setSaveNotice('This browser does not allow saving details. You can still check out normally.');
+  }
+ },[savedDetailsReady,rememberDetails,form.name,form.email,form.phone]);
+ function setRememberPreference(remember:boolean){
+  setRememberDetails(remember);
+  setSaveNotice('');
+  if(!remember){
+   try{window.localStorage.removeItem(SAVED_CHECKOUT_CONTACT_KEY);setHasSavedDetails(false);}
+   catch{setSaveNotice('Please clear this site’s saved data in your browser settings.');}
+  }
+ }
+ function forgetSavedDetails(){
+  setRememberDetails(false);
+  try{window.localStorage.removeItem(SAVED_CHECKOUT_CONTACT_KEY);setSaveNotice('Saved details cleared from this device.');setHasSavedDetails(false);}
+  catch{setSaveNotice('Please clear this site’s saved data in your browser settings.');}
+  setForm(current=>({...current,name:'',email:'',phone:''}));
+ }
  async function submit(e:FormEvent){e.preventDefault();setError('');if(hasUnpriced){setError('Please contact Cardone’s to confirm prices before generating an invoice.');return;}if(!test&&!jamaicanPhone(form.phone)){setError('Enter a valid Jamaican telephone number.');return;}setLoading(true);try{const delivery=deliveryDetails(shipping,form.parish,merchant.deliveryFeeJmd);if(test){setInvoice({reference:'SAMPLE-NOT-PAYABLE',token:'',issuedAt:new Date().toISOString(),customer:{name:form.name,email:form.email,phone:form.phone,parish:form.parish},bank:null,pricedSubtotalJmd:subtotal,deliveryFeeJmd:delivery.fee,shipping:delivery,lines:detail.map(({line,match})=>({name:match!.product.name,size:match!.variant!.label,quantity:line.quantity,unitPriceJmd:match!.variant!.priceJmd}))});return;}const body=new FormData();body.set('botToken',botToken);body.set('order',JSON.stringify({...form,shipping,fulfillment:'delivery',paymentMethod:'bank_transfer',lines}));const r=await fetch('/api/orders',{method:'POST',body});const x=await r.json();if(!r.ok||!x.ok)throw Error(x.message||'Invoice could not be generated.');setInvoice(x);}catch(e){setError(e instanceof Error?e.message:'Unable to generate invoice.');}finally{setLoading(false);setBotToken('');setBotReset(n=>n+1);}}
  if(invoice)return <CheckoutInvoice invoice={invoice} demo={test} onSubmitted={clear}/>;
  return <section className="section checkout-section"><div className="container"><span className="eyebrow">YOUR CARDONE’S EXPERIENCE</span><h1>Checkout — bank transfer</h1><p className="checkout-intro">{test?'DEMO ONLY — no orders or payments are accepted.':'Enter your details and generate an invoice. Then transfer the amount through your bank, upload proof and submit your order.'}</p>
@@ -34,13 +77,21 @@ export default function CheckoutPage(){
 
  <p className="status-note">{shipping.service==='free_dropoff'?'Drop-off is free in Hopewell, Sandy Bay and Lucea (Hanover), and Negril (Westmoreland). The meeting point will be confirmed.':shipping.service==='zip_mail'?(merchant.deliveryFeeJmd===null?'Zip Mail postage must be confirmed before checkout is available for this service.':`Zip Mail postage: ${jmd(merchant.deliveryFeeJmd)}. Pay this together with your products.`):'Pay the courier charge to Knutsford Express or Tara on delivery / collection. Product payment is due to Cardone’s before dispatch. Courier charges are confirmed separately.'}</p>
  <p className="status-note"><strong>Dispatch: Wednesdays and Saturdays.</strong> Orders must be received and payment verified before dispatch. These are shipment days, not guaranteed arrival dates; Cardone’s will confirm your dispatch date.</p>
- {test&&<p className="status-note">Use sample customer details only. This preview generates a sample invoice locally; it does not send your details or accept payments.</p>}
+ {test&&<p className="status-note">Use sample customer details only. This preview generates a sample invoice locally and does not send your details or accept payments. If you opt to remember contact details, the sample details are stored only in this browser.</p>}
  <><h2>Your details</h2><div className="form-grid">
  <label className="form-field">Full name *<input autoComplete="name" required minLength={2} maxLength={100} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>
  <label className="form-field">Telephone / WhatsApp *<input type="tel" inputMode="tel" autoComplete="tel" required minLength={10} maxLength={30} value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></label>
  <label className="form-field full">Email *<input required maxLength={150} type="email" autoComplete="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label>
- <label className="form-field">Parish *<select value={form.parish} onChange={e=>setForm({...form,parish:e.target.value})}>{(shipping.service==='free_dropoff'?[freeTowns[shipping.town as keyof typeof freeTowns]]:merchant.availableParishes).map(p=><option value={p} key={p}>{p}</option>)}</select></label>
  <label className="form-field full">Notes (optional)<textarea maxLength={600} value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></label></div>
+ <div className="remember-checkout">
+  <label className="form-check">
+   <input type="checkbox" checked={rememberDetails} onChange={e=>setRememberPreference(e.target.checked)}/>
+   <span><strong>Remember my details on this device</strong><small>Automatically fill in my name, telephone number and email next time. Optional; stored only in this browser, not in a customer account.</small></span>
+  </label>
+  {hasSavedDetails&&<button type="button" className="remember-forget" onClick={forgetSavedDetails}>Forget my saved details</button>}
+  {saveNotice&&<p className="remember-message" role="status">{saveNotice}</p>}
+  <p className="remember-privacy">Avoid saving personal details on a shared device. Payment proof, delivery instructions and consent choices are never remembered.</p>
+ </div>
  <h2>Pay by bank transfer</h2><p>No online payment is taken. Generate your invoice first to see the reference, amount and bank details. After transferring, upload your proof on the invoice screen and submit your order.</p>{!test&&!merchant.payment.bankTransfer&&<p className="status-note">Bank-transfer invoicing is not available yet. Please contact Cardone’s.</p>}
  <label className="checkout-honeypot">Leave blank<input tabIndex={-1} autoComplete="off" value={form.website} onChange={e=>setForm({...form,website:e.target.value})}/></label>
  <label className="form-check"><input type="checkbox" checked={form.consent} required onChange={e=>setForm({...form,consent:e.target.checked})}/><span>I agree to be contacted about my request and understand no order is paid until independently confirmed.</span></label></>
