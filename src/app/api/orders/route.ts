@@ -11,7 +11,7 @@ export const dynamic='force-dynamic';
 const schema=z.object({
  name:z.string().trim().min(2).max(100), email:z.string().trim().email().max(150),
  phone:z.string().trim().max(30).refine(x=>Boolean(jamaicanPhone(x))), parish:z.enum(parishes),
- address:z.string().trim().min(5).max(240), fulfillment:z.enum(['pickup','delivery']), shipping:deliverySchema,
+ fulfillment:z.enum(['pickup','delivery']), shipping:deliverySchema,
  notes:z.string().max(600).optional(), consent:z.literal(true),
  website:z.string().max(80).optional(),
  paymentMethod:z.literal('bank_transfer'),
@@ -56,13 +56,13 @@ export async function POST(req:NextRequest){
   const token=randomBytes(32).toString('hex');
   const status='awaiting_payment';
   const res=await sb.from('store_orders').insert({
-   reference,invoice_upload_hash:createHash('sha256').update(token).digest('hex'),billing_address:x.address,customer_name:x.name,email:x.email||null,phone:jamaicanPhone(x.phone),parish:x.parish,address:shipping.destination,
+   reference,invoice_upload_hash:createHash('sha256').update(token).digest('hex'),customer_name:x.name,email:x.email||null,phone:jamaicanPhone(x.phone),parish:x.parish,address:shipping.destination,
    fulfillment:'delivery',shipping_service:shipping.service,shipping_town:shipping.town||null,shipping_destination:shipping.destination,courier_fee_collect:shipping.courierCollect,notes:x.notes||null,lines,priced_subtotal_jmd:subtotal,
    has_unpriced:unpriced,status,delivery_fee_jmd:shipping.fee,payment_method:x.paymentMethod,receipt_path:null
   });
   if(res.error)return failure('Unable to generate the invoice. Please contact Cardone’s.',503);
   const publicConfig=publicSettings(config);
-  return NextResponse.json({ok:true,reference,token,issuedAt:new Date().toISOString(),customer:{name:x.name,email:x.email,phone:jamaicanPhone(x.phone),address:x.address,parish:x.parish},bank:publicConfig.payment.bank,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:shipping.fee,shipping,message:'Invoice generated. Transfer the amount using this reference, then upload proof and submit your order.'},{status:201,headers:{'Cache-Control':'no-store'}});
+  return NextResponse.json({ok:true,reference,token,issuedAt:new Date().toISOString(),customer:{name:x.name,email:x.email,phone:jamaicanPhone(x.phone),parish:x.parish},bank:publicConfig.payment.bank,pricedSubtotalJmd:subtotal,lines,deliveryFeeJmd:shipping.fee,shipping,message:'Invoice generated. Transfer the amount using this reference, then upload proof and submit your order.'},{status:201,headers:{'Cache-Control':'no-store'}});
  }catch(e){
   if(e instanceof SecurityCheckError)return failure(e.message,400);
   const msg=e instanceof Error?e.message:'';
