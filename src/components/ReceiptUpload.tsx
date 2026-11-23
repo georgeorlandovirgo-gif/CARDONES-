@@ -9,7 +9,7 @@ export function ReceiptUpload({demo,busy,onFile,onReference,onReady}:{demo:boole
  async function selected(file:File|null){
   active.current?.abort();const controller=new AbortController();active.current=controller;
   edit('');onFile(file);setMessage('');setReading(false);if(!file)return;
-  if(file.size>5*1024*1024){setMessage('Choose a file no larger than 5 MB.');onFile(null);return;}
+  if(file.size===0||file.size>5*1024*1024){setMessage('Choose a non-empty proof of payment file no larger than 5 MB.');onFile(null);return;}
   setReading(true);setMessage('Reading your receipt… This can take a moment on a phone.');
   const timer=setTimeout(()=>{controller.abort();if(active.current===controller){setReading(false);setMessage('Automatic reading took too long. Enter the transaction ID below.');}},45000);
   try{
@@ -28,9 +28,9 @@ export function ReceiptUpload({demo,busy,onFile,onReference,onReady}:{demo:boole
   if(blob)await selected(new File([blob],'sample-receipt.png',{type:'image/png'}));
  }
  return <>
- <label className="form-field">Upload proof of payment *<input type="file" disabled={demo||busy} required={!demo} accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>void selected(e.target.files?.[0]||null)}/></label>
- <p>JPG, PNG, WebP or PDF · maximum 5 MB. Receipt reading happens on your device. PDFs: first two pages only.</p>
- {demo&&<button type="button" className="button button-outline-dark" disabled={reading} onClick={()=>void sample()}>Try reading a sample receipt</button>}
+ <label className="form-field">{demo?'Upload sample proof of payment *':'Upload proof of payment *'}<input type="file" disabled={busy} required={!demo} accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>void selected(e.target.files?.[0]||null)}/></label>
+ <p>JPG, PNG, WebP or PDF · maximum 5 MB. Receipt reading happens on your device. PDFs: first two pages only.</p>{demo&&<p className="status-note">Preview only — use a sample receipt or choose “Try reading a sample receipt” below. Do not upload real banking information.</p>}
+ {demo&&<button type="button" className="button button-outline-dark" disabled={busy||reading} onClick={()=>void sample()}>Try reading a sample receipt</button>}
  {message&&<p role="status" aria-live="polite">{message}</p>}
  {reading&&<button type="button" className="text-button" onClick={manual}>Enter the number myself</button>}
  <label className="form-field">Bank transaction ID / receipt number *<input disabled={busy||reading} required={!demo} minLength={4} maxLength={100} value={reference} onChange={e=>edit(e.target.value)}/></label>
