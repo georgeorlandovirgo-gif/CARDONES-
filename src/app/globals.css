@@ -363,3 +363,12 @@ body{font-size:16px}input,select,textarea{font-size:16px!important}button,a,inpu
 .review-back{margin-top:11px;background:transparent}
 @media(max-width:800px){.review-layout{grid-template-columns:minmax(0,1fr)}.review-submit-card{padding:24px}.review-main{padding:24px}}
 @media(max-width:520px){.checkout-review-section h1{font-size:38px}.review-main,.review-submit-card{padding:19px}.review-product{flex-wrap:wrap}.review-total-line{flex-wrap:wrap}}
+
+/* Reliable, accessible file selection for bank transfer proof and the demo */
+.receipt-file-picker{position:relative;display:flex;flex-direction:column;gap:10px;margin:18px 0 14px}
+.receipt-file-heading{font-size:14px;font-weight:700;color:#334b38}
+.receipt-file-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important}
+.receipt-file-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.receipt-file-button{min-width:125px;position:relative;z-index:1}
+.receipt-file-name{flex:1;min-width:0;font-size:13px;color:#506456;overflow-wrap:anywhere}
+.receipt-file-picker:focus-within .receipt-file-button{outline:3px solid #9c7134;outline-offset:3px}
