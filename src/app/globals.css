@@ -372,3 +372,15 @@ body{font-size:16px}input,select,textarea{font-size:16px!important}button,a,inpu
 .receipt-file-button{min-width:125px;position:relative;z-index:1}
 .receipt-file-name{flex:1;min-width:0;font-size:13px;color:#506456;overflow-wrap:anywhere}
 .receipt-file-picker:focus-within .receipt-file-button{outline:3px solid #9c7134;outline-offset:3px}
+
+/* Optional contact detail recall for returning customers */
+.remember-checkout{border:1px solid #d6c8b2;background:#faf6ed;padding:18px 20px;margin:20px 0 27px}
+.remember-checkout .form-check{display:flex;align-items:flex-start;gap:12px;margin:0}
+.remember-checkout .form-check input{flex-shrink:0;margin-top:4px;accent-color:#1a432d;width:18px;height:18px}
+.remember-checkout .form-check span{display:flex;flex-direction:column;gap:5px;color:#244233;font-size:14px;line-height:1.5}
+.remember-checkout .form-check small{font-size:12px;font-weight:400;line-height:1.7;color:#5c6b5c}
+.remember-forget{border:0;background:transparent;padding:5px 0;margin-top:12px;text-decoration:underline;text-underline-offset:3px;color:#795d3f;font-size:12px;font-weight:600;text-align:left}
+.remember-forget:hover{color:#243e2d}
+.remember-privacy{margin:13px 0 0;font-size:11px;line-height:1.6;color:#687166}
+.remember-message{margin:12px 0 0;font-size:12px;line-height:1.6;color:#4f634e}
+@media(max-width:560px){.remember-checkout{padding:14px 15px}}
