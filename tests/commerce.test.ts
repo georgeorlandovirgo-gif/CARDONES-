@@ -19,7 +19,7 @@ test('Cart rejects corrupt quantities and preserves unpriced/coming-soon catalog
 test('PostgreSQL migrations, atomic saves, rollback, throttling and access grants',async()=>{
  const db=new PGlite();
  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA storage; CREATE TABLE storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);');
- for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql','006_delivery.sql','007_invoice_checkout.sql']){
+ for(const file of ['001_orders.sql','002_store_management.sql','003_atomic_commerce.sql','004_testimonials.sql','006_delivery.sql','007_invoice_checkout.sql','009_zip_mail_post_to_door.sql']){
   const sql=(await readFile(new URL('../supabase/migrations/'+file,import.meta.url),'utf8')).replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;','');
   await db.exec(sql);
  }
