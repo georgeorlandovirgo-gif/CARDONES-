@@ -41,7 +41,7 @@ export const products: Product[] = [
     howToUse: "Massage a small amount onto skin or use as a pre-wash hair treatment. Coconut oil may naturally solidify in cooler temperatures; warm the sealed bottle gently in lukewarm water.",
     ingredientsNote: "Extra virgin designation must be verified against the supplier's documentation.",
     caution: "For external use only. Patch test first. Do not microwave the bottle.",
-    featured: true, variants: [{ id: "coconut-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: true }]
+    featured: true, badge: "Coming soon", variants: [{ id: "coconut-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: false }]
   },
   {
     id: "olive", slug: "extra-virgin-olive-oil", name: "Extra Virgin Olive Oil", subtitle: "Golden everyday care",
@@ -51,9 +51,9 @@ export const products: Product[] = [
     howToUse: "Smooth a small amount through hair ends or massage onto dry skin. Apply a light amount first and adjust to your preference.",
     ingredientsNote: "Extra virgin designation must be verified against the supplier's documentation.",
     caution: "For external use only. Patch test first. Avoid eyes.",
-    featured: true, variants: [
-      { id: "olive-60", label: "2 fl oz · 60 mL", ml: 60, priceJmd: null, available: true },
-      { id: "olive-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: true }
+    featured: true, badge: "Coming soon", variants: [
+      { id: "olive-60", label: "2 fl oz · 60 mL", ml: 60, priceJmd: null, available: false },
+      { id: "olive-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: false }
     ]
   },
   {
@@ -64,7 +64,7 @@ export const products: Product[] = [
     howToUse: "Gently smooth two or three drops over hair ends or massage a small amount onto clean skin. Start with a few drops.",
     ingredientsNote: "Confirm ingredient purity and production method with the supplier.",
     caution: "For external use only. Patch test first. Avoid contact with eyes.",
-    featured: true, variants: [{ id: "jojoba-60", label: "2 fl oz · 60 mL", ml: 60, priceJmd: null, available: true }]
+    featured: true, badge: "Coming soon", variants: [{ id: "jojoba-60", label: "2 fl oz · 60 mL", ml: 60, priceJmd: null, available: false }]
   },
   {
     id: "palm", slug: "palm-oil", name: "Palm Oil", subtitle: "Rich and restorative feel",
@@ -74,7 +74,7 @@ export const products: Product[] = [
     howToUse: "Warm a small quantity between the palms before applying to dry skin or hair lengths. Use carefully to avoid staining fabrics.",
     ingredientsNote: "Verify whether this is palm fruit oil or palm kernel oil before confirming the final ingredient declaration.",
     caution: "For external use only. Patch test first. Product type must be confirmed before sale.",
-    variants: [{ id: "palm-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: false }]
+    badge: "Coming soon", variants: [{ id: "palm-148", label: "5 fl oz · 148 mL", ml: 148, priceJmd: null, available: false }]
   },
   {
     id: "rosemary", slug: "rosemary-oil", name: "Rosemary Oil", subtitle: "A botanical scalp routine",
