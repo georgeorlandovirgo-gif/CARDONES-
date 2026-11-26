@@ -1,3 +1,4 @@
+import {ZIP_MAIL_BASE_RATES_JMD} from '@/lib/zip-mail';
 'use client';
 import {parishes} from '@/lib/commerce';
 import {createContext,useContext,useEffect,useState} from 'react';
@@ -8,7 +9,7 @@ export type PublicMerchant={
  delivery:boolean;pickup:boolean;deliveryInformation:string|null;pickupInformation:string|null;deliveryFeeJmd:number|null;paused:boolean;policies:string|null;
 };
 const empty:PublicMerchant={availableParishes:[...parishes],phone:null,whatsapp:null,email:null,instagram:null,facebook:null,location:'St. Elizabeth, Jamaica',contactHours:null,
- payment:{bankTransfer:false,cash:false,whatsapp:false,bank:null},delivery:true,pickup:true,deliveryInformation:null,pickupInformation:null,deliveryFeeJmd:null,paused:true,policies:null};
+ payment:{bankTransfer:false,cash:false,whatsapp:false,bank:null},delivery:true,pickup:true,deliveryInformation:null,pickupInformation:null,deliveryFeeJmd:ZIP_MAIL_BASE_RATES_JMD.post_to_post,paused:true,policies:null};
 const C=createContext<PublicMerchant>(empty);
 export const useMerchant=()=>useContext(C);
 export function MerchantProvider({children}:{children:React.ReactNode}){
