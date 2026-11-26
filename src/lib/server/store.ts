@@ -1,3 +1,4 @@
+import {ZIP_MAIL_BASE_RATES_JMD} from '@/lib/zip-mail';
 import 'server-only';
 import {parishes,jamaicanPhone} from '@/lib/commerce';
 import { createClient } from '@supabase/supabase-js';
@@ -54,7 +55,7 @@ export function publicSettings(s:MerchantSettings){
  name:s.bank_name,holder:s.bank_holder,account:s.bank_account,
  branch:s.bank_branch,type:s.bank_type,instructions:s.bank_instructions}:null},
  delivery:s.delivery_enabled,pickup:s.pickup_enabled,deliveryInformation:s.delivery_information,
- pickupInformation:s.pickup_information,deliveryFeeJmd:s.delivery_fee_jmd,
+ pickupInformation:s.pickup_information,deliveryFeeJmd:ZIP_MAIL_BASE_RATES_JMD.post_to_post,
  paused:s.store_paused,policies:s.policies};
 }
 export type ProductRecord = Record<string,unknown>;
