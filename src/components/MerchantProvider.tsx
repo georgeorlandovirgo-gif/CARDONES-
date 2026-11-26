@@ -1,5 +1,5 @@
-import {ZIP_MAIL_BASE_RATES_JMD} from '@/lib/zip-mail';
 'use client';
+import {ZIP_MAIL_BASE_RATES_JMD} from '@/lib/zip-mail';
 import {parishes} from '@/lib/commerce';
 import {createContext,useContext,useEffect,useState} from 'react';
 export type PublicMerchant={
