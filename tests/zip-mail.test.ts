@@ -2,8 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateZipMailPostage,ZIP_MAIL_BASE_RATES_JMD,ZIP_MAIL_EXTRA_COVERAGE_MAX_JMD} from '../src/lib/zip-mail';
 
-test('Jamaica Post published first-10lb rates for all four delivery modes',()=>{
- assert.deepEqual(ZIP_MAIL_BASE_RATES_JMD,{post_to_post:500,post_to_door:850,door_to_post:850,door_to_door:1000});
+test('Only Cardone’s Post Office-origin Zip Mail delivery modes are available',()=>{
+ assert.deepEqual(ZIP_MAIL_BASE_RATES_JMD,{post_to_post:500,post_to_door:850});
  for(const [mode,expected] of Object.entries(ZIP_MAIL_BASE_RATES_JMD)){
   const quote=calculateZipMailPostage(10,mode as keyof typeof ZIP_MAIL_BASE_RATES_JMD);
   assert.equal(quote.customerPostageTotalJmd,expected);
@@ -21,6 +21,9 @@ test('The business covers every extra pound up to J$1,500 per order',()=>{
  assert.equal(fraction.extraPostageJmd,50);
  assert.equal(fraction.cardonesContributionJmd,50);
  assert.equal(fraction.additionalCustomerJmd,0);
+ const door=calculateZipMailPostage(10.2,'post_to_door');
+ assert.equal(door.customerPostageTotalJmd,850);
+ assert.equal(door.cardonesContributionJmd,50);
  const heavy=calculateZipMailPostage(40);
  assert.equal(heavy.extraPostageJmd,1500);
  assert.equal(heavy.cardonesContributionJmd,1500);
