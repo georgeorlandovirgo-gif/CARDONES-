@@ -10,16 +10,14 @@ export const ZIP_MAIL_EXTRA_POUND_JMD=50;
 export const ZIP_MAIL_EXTRA_COVERAGE_MAX_JMD=1500;
 export const ZIP_MAIL_BASE_RATES_JMD={
  post_to_post:500,
- post_to_door:850,
- door_to_post:850,
- door_to_door:1000
+ post_to_door:850
 } as const;
 export type ZipMailMode=keyof typeof ZIP_MAIL_BASE_RATES_JMD;
 
 /**
  * This is an internal rate calculation, not a checkout weight estimate.
  * All order weights MUST be measured including packaging before quoting excess charges.
- * The live storefront currently sells Post-to-Post collection only.
+ * Cardone’s takes all parcels to the post office itself; only Post-to-Post and Post-to-Door apply.
  */
 export function calculateZipMailPostage(weightLbs:number,mode:ZipMailMode='post_to_post'){
  if(!Number.isFinite(weightLbs)||weightLbs<=0)throw Error('A verified positive parcel weight is required.');
