@@ -68,10 +68,10 @@ export function normalizeProduct(row:ProductRecord,variants:ProductRecord[]):Pro
  labelImage:typeof row.label_image==='string'?row.label_image:undefined,
  benefits:Array.isArray(row.benefits)?row.benefits.filter((x):x is string=>typeof x==='string'):[],
  howToUse:String(row.how_to_use||''),ingredientsNote:String(row.ingredients_note||''),caution:String(row.caution||''),
- featured:row.featured===true,badge:typeof row.badge==='string'?row.badge:undefined,
+ featured:row.featured===true,badge:row.id!=='castor'?'Coming soon':typeof row.badge==='string'?row.badge:undefined,
  variants:variants.filter(v=>v.product_id===row.id).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0))
  .map(v=>({id:String(v.id),label:String(v.label),ml:Number(v.ml),
- priceJmd:v.price_jmd===null?null:Number(v.price_jmd),available:v.available===true,stockCount:typeof v.stock_count==="number"?v.stock_count:null}))};
+ priceJmd:v.price_jmd===null?null:Number(v.price_jmd),available:row.id==='castor'&&v.available===true,stockCount:typeof v.stock_count==="number"?v.stock_count:null}))};
 }
 export async function catalog():Promise<Product[]> {
  const sb=db();const [p,v]=await Promise.all([
