@@ -2,6 +2,20 @@ import {test} from 'node:test';import assert from 'node:assert/strict';import {c
 test('Free drop-off requires an eligible town and matching parish',()=>{for(const [town,parish] of Object.entries(freeTowns))assert.equal(deliveryDetails({service:'free_dropoff',town,destination:'Town meeting point'},parish,900).fee,0);assert.throws(()=>deliveryDetails({service:'free_dropoff',town:'Kingston',destination:'Town centre'},'Kingston',null));assert.throws(()=>deliveryDetails({service:'free_dropoff',town:'Negril',destination:'Town centre'},'Hanover',null));});
 test('Courier fees stay separate while Zip Mail charges the standard J$500 Post-to-Post rate',()=>{for(const service of ['knutsford','tara_address','tara_office']){const d=deliveryDetails({service,town:'Lucea',destination:service==='tara_address'?'12 Example Street, Lucea':collectionLocations(service)[0].name},'Hanover',800);assert.equal(d.fee,0);assert.equal(d.courierCollect,true);}const zip={service:'zip_mail',town:'Lucea',destination:'Lucea'};assert.equal(deliveryDetails(zip,'Hanover',null).fee,500);assert.equal(deliveryDetails(zip,'Hanover',800).fee,500);assert.equal(deliveryDetails(zip,'Hanover',null).courierCollect,false);assert.throws(()=>deliveryDetails({service:'tara_office',town:'Lucea',destination:''},'Hanover',800));});
 
+test('Cardone’s Zip Mail drop-off supports only post office collection and post office to door',()=>{
+ const collect=deliveryDetails({service:'zip_mail',destination:'Lucea'},'Hanover',null);
+ assert.equal(collect.fee,500);
+ assert.equal(collect.courierCollect,false);
+ assert.match(collect.label,/Post Office to Post Office/);
+ const door=deliveryDetails({service:'zip_mail_door',town:'Portmore',destination:'Lot 12, Cedar Grove, Portmore, St. Catherine'},'St. Catherine',null);
+ assert.equal(door.fee,850);
+ assert.equal(door.courierCollect,false);
+ assert.match(door.label,/Post Office to Door/);
+ assert.throws(()=>deliveryDetails({service:'zip_mail_door',town:'Portmore',destination:'Missing'},'St. Catherine',null),/full home delivery address/);
+ assert.throws(()=>deliveryDetails({service:'zip_mail_door',town:'',destination:'Lot 12, Cedar Grove, Portmore'},'St. Catherine',null),/destination town/);
+ assert.throws(()=>deliveryDetails({service:'zip_mail_door',town:'Portmore',destination:'Lot 12, Cedar Grove, Portmore',additionalFee:0},'St. Catherine',null));
+});
+
 test('Courier destinations require a town and home delivery requires a full address',()=>{assert.throws(()=>deliveryDetails({service:'knutsford',town:'',destination:'Selected depot'},'Hanover',800));assert.throws(()=>deliveryDetails({service:'tara_address',town:'Lucea',destination:'Road'},'Hanover',800));const x=deliveryDetails({service:'tara_address',town:'Lucea',destination:'12 Example Road, community'},'Hanover',800);assert.equal(x.destination,'12 Example Road, community');});
 
 test('Published collection lists reject arbitrary and wrong-carrier destinations',()=>{assert.equal(collectionLocations('knutsford').length,19);assert.equal(collectionLocations('tara_office').length,5);assert.equal(collectionLocations('zip_mail').length,104);for(const service of ['knutsford','tara_office','zip_mail']){const list=collectionLocations(service);assert.equal(new Set(list.map(x=>x.name)).size,list.length);for(const p of list)assert.equal(deliveryDetails({service,destination:p.name},'Hanover',800).destination,p.name);assert.throws(()=>deliveryDetails({service,destination:'Invented branch'},'Hanover',800));}assert.throws(()=>deliveryDetails({service:'knutsford',destination:collectionLocations('tara_office')[0].name},'Hanover',800));});
